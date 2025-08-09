@@ -22,6 +22,7 @@ import HeartElement from "./HeartElement";
 import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
+import CategoryList from "./CategoryList";
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -80,10 +81,10 @@ const Header = () => {
   }, [session?.user?.email, wishlist.length]);
 
   return (
-    <header className="bg-white">
+    <header className="bg-white shadow-md sticky top-0 z-50">
       <HeaderTop />
       {pathname.startsWith("/admin") === false && (
-        <div className="h-32 bg-white flex items-center justify-between px-16 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">
+        <div className="sticky h-28 bg-white flex items-center justify-between px-12 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">
           <Link href="/">
             <img
               src="/genuinlogo1 v2.png"
@@ -98,7 +99,9 @@ const Header = () => {
             <HeartElement wishQuantity={wishQuantity} />
             <CartElement />
           </div>
+         
         </div>
+        
       )}
       {pathname.startsWith("/admin") === true && (
         <div className="flex justify-between h-32 bg-white items-center px-16 max-[1320px]:px-10  max-w-screen-2xl mx-auto max-[400px]:px-5">
@@ -141,6 +144,7 @@ const Header = () => {
           </div>
         </div>
       )}
+       <CategoryList />
     </header>
   );
 };

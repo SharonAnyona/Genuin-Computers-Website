@@ -17,13 +17,43 @@ import Heading from "./Heading";
 const CategoryMenu = () => {
   return (
     <div className="py-10 bg-[#f5f5f5]">
-      <Heading title="BROWSE CATEGORIES" />
-      <div className="max-w-screen-2xl mx-auto py-10 gap-x-5 px-16 max-md:px-10 gap-y-5 grid grid-cols-5 max-lg:grid-cols-3 max-md:grid-cols-2 max-[450px]:grid-cols-1">
-        {categoryMenuList.map((item) => (
-          <CategoryItem title={item.title} key={item.id} href={item.href}>
-            <Image src={item.src} width={48} height={48} alt={item.title} />
-          </CategoryItem>
-        ))}
+      <Heading title="Browse by range" />
+
+      <div className="overflow-hidden w-full relative mt-8">
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-8 px-6">
+          {categoryMenuList.map((item) => (
+            <CategoryItem title={item.title} key={item.id} href={item.href}>
+              <div className="flex flex-col items-center justify-center w-32 h-32 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
+                <Image
+                  src={item.src}
+                  width={48}
+                  height={48}
+                  alt={item.title}
+                  className="mb-2 group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+            </CategoryItem>
+          ))}
+
+          {/* Clone list again to create seamless marquee effect */}
+          {categoryMenuList.map((item) => (
+            <CategoryItem
+              title={item.title}
+              key={`clone-${item.id}`}
+              href={item.href}
+            >
+              <div className="flex flex-col items-center justify-center w-32 h-32 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
+                <Image
+                  src={item.src}
+                  width={48}
+                  height={48}
+                  alt={item.title}
+                  className="mb-2 group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+            </CategoryItem>
+          ))}
+        </div>
       </div>
     </div>
   );

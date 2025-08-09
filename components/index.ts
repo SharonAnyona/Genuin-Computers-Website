@@ -46,4 +46,3 @@ export { default as AdminOrders } from "./AdminOrders";
 export { default as OrderItem } from "./OrderItem";
 export { default as HeroBanner } from "./HeroBanner";
 export { default as CategoryList } from "./CategoryList";
-

@@ -34,7 +34,7 @@ const Newsletter = () => {
           />
           <button
             type="submit"
-            className="flex-none rounded-md bg-custom-yellow px-3.5 py-2.5 text-sm font-semibold text-black shadow-sm hover:bg-black hover:text-custom-yellow focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="flex-none rounded-md bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-black shadow-sm hover:bg-black hover:text-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             Subscribe
           </button>
