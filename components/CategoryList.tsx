@@ -3,7 +3,7 @@ import Link from "next/link";
 import { categoryMenuList } from "@/lib/utils";
 
 const CategoryList = () => {
-  const activeIndex = 1; // Replace with logic if needed
+  const activeIndex = 1; 
 
   return (
     <nav className="bg-white border-t border-gray-200">
