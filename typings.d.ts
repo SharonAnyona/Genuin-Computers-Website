@@ -3,6 +3,7 @@ interface Product {
   slug: string;
   title: string;
   price: number;
+  oldPrice?: number;
   rating: number;
   description: string;
   mainImage: string;
@@ -10,6 +11,7 @@ interface Product {
   categoryId: string;
   category: {name: string}?;
   inStock: number;
+  isNew?: boolean;
 }
 
 interface SingleProductPageProps {

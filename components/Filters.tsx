@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Filters on shop page
 // Name of the component: Filters.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <Filters />
 // Input parameters: no input parameters
@@ -119,7 +119,7 @@ const Filters = () => {
               })
             }
           />
-          <span>{`Max price: $${inputCategory.priceFilter.value}`}</span>
+          <span>{`Max price: KSh ${inputCategory.priceFilter.value}`}</span>
         </div>
       </div>
 

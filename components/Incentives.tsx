@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Incentives on home page like Free Shipping, 24/7 Customer Support, Fast Shopping Cart...
 // Name of the component: Incentives.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <Incentives />
 // Input parameters: no input parameters
@@ -16,7 +16,7 @@ const Incentives = () => {
   return (
     <div>
       {/* <h2 className='text-3xl text-center py-5'>Best Customer Benefits</h2> */}
-    <div className=" bg-blue-50 mx-auto max-w-screen-2xl py-10 sm:px-2 lg:px-4">
+    <div className=" bg-gray-50 mx-auto max-w-screen-2xl py-10 sm:px-2 lg:px-4">
       <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-10 px-4 lg:max-w-none lg:grid-cols-3">
         {incentives.map((incentive) => (
           <div key={incentive.name} className="text-center sm:flex sm:text-left lg:block lg:text-center">

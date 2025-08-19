@@ -27,7 +27,7 @@ const DashboardSingleUserPage = ({
     const requestOptions = {
       method: "DELETE",
     };
-    fetch(`http://localhost:3001/api/users/${id}`, requestOptions)
+    fetch(`http://localhost:3002/api/users/${id}`, requestOptions)
       .then((response) => {
         if (response.status === 204) {
           toast.success("User deleted successfully");
@@ -62,7 +62,7 @@ const DashboardSingleUserPage = ({
             role: userInput.role,
           }),
         };
-        fetch(`http://localhost:3001/api/users/${id}`, requestOptions)
+        fetch(`http://localhost:3002/api/users/${id}`, requestOptions)
           .then((response) => {
             if (response.status === 200) {
               return response.json();
@@ -86,7 +86,7 @@ const DashboardSingleUserPage = ({
 
   useEffect(() => {
     // sending API request for a single user
-    fetch(`http://localhost:3001/api/users/${id}`)
+    fetch(`http://localhost:3002/api/users/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -156,14 +156,14 @@ const DashboardSingleUserPage = ({
         <div className="flex gap-x-2 max-sm:flex-col">
           <button
             type="button"
-            className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={updateUser}
           >
             Update user
           </button>
           <button
             type="button"
-            className="uppercase bg-red-600 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={deleteUser}
           >
             Delete user

@@ -3,7 +3,7 @@
 // *********************
 // Role of the component: Component that displays all orders on admin dashboard page
 // Name of the component: AdminOrders.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <AdminOrders />
 // Input parameters: No input parameters
@@ -18,7 +18,7 @@ const AdminOrders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const response = await fetch("http://localhost:3001/api/orders");
+      const response = await fetch("http://localhost:3002/api/orders");
       const data = await response.json();
       setOrders(data);
     };

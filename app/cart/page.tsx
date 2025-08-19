@@ -73,7 +73,7 @@ const CartPage = () => {
                         ) : null}
                       </div> */}
                           <p className="mt-1 text-sm font-medium text-gray-900">
-                            ${product.price}
+                            KSh {product.price}
                           </p>
                         </div>
 
@@ -148,7 +148,7 @@ const CartPage = () => {
                       />
                     </a>
                   </dt>
-                  <dd className="text-sm font-medium text-gray-900">$5.00</dd>
+                  <dd className="text-sm font-medium text-gray-900">KSh 5.00</dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                   <dt className="flex text-sm text-gray-600">
@@ -183,7 +183,7 @@ const CartPage = () => {
                 <div className="mt-6">
                   <Link
                     href="/checkout"
-                    className="block flex justify-center items-center w-full uppercase bg-white px-4 py-3 text-base border border-black border-gray-300 font-bold text-blue-600 shadow-sm hover:bg-black hover:bg-gray-100 focus:outline-none focus:ring-2"
+                    className="flex justify-center items-center w-full uppercase bg-red-600 px-4 py-3 text-base border border-red-600 font-bold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2"
                   >
                     <span>Checkout</span>
                   </Link>

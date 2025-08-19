@@ -23,7 +23,7 @@ const DashboardSingleCategory = ({
       method: "DELETE",
     };
     // sending API request for deleting a category
-    fetch(`http://localhost:3001/api/categories/${id}`, requestOptions)
+    fetch(`http://localhost:3002/api/categories/${id}`, requestOptions)
       .then((response) => {
         if (response.status === 204) {
           toast.success("Category deleted successfully");
@@ -47,7 +47,7 @@ const DashboardSingleCategory = ({
         }),
       };
       // sending API request for updating a category
-      fetch(`http://localhost:3001/api/categories/${id}`, requestOptions)
+      fetch(`http://localhost:3002/api/categories/${id}`, requestOptions)
         .then((response) => {
           if (response.status === 200) {
             return response.json();
@@ -67,7 +67,7 @@ const DashboardSingleCategory = ({
 
   useEffect(() => {
     // sending API request for getting single categroy
-    fetch(`http://localhost:3001/api/categories/${id}`)
+    fetch(`http://localhost:3002/api/categories/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -102,14 +102,14 @@ const DashboardSingleCategory = ({
         <div className="flex gap-x-2 max-sm:flex-col">
           <button
             type="button"
-            className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={updateCategory}
           >
             Update category
           </button>
           <button
             type="button"
-            className="uppercase bg-red-600 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={deleteCategory}
           >
             Delete category

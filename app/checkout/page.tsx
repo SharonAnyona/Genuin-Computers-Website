@@ -82,7 +82,7 @@ const CheckoutPage = () => {
       }
 
       // sending API request for creating a order
-      const response = fetch("http://localhost:3001/api/orders", {
+      const response = fetch("http://localhost:3002/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +147,7 @@ const CheckoutPage = () => {
     productQuantity: number
   ) => {
     // sending API POST request for the table customer_order_product that does many to many relatioship for order and product
-    const response = await fetch("http://localhost:3001/api/order-product", {
+    const response = await fetch("http://localhost:3002/api/order-product", {
       method: "POST", // or 'PUT'
       headers: {
         "Content-Type": "application/json",
@@ -218,7 +218,7 @@ const CheckoutPage = () => {
                     <p className="text-gray-500">x{product?.amount}</p>
                   </div>
                   <p className="flex-none text-base font-medium">
-                    ${product?.price}
+                    KSh {product?.price}
                   </p>
                   <p></p>
                 </li>
@@ -228,23 +228,23 @@ const CheckoutPage = () => {
             <dl className="hidden space-y-6 border-t border-gray-200 pt-6 text-sm font-medium text-gray-900 lg:block">
               <div className="flex items-center justify-between">
                 <dt className="text-gray-600">Subtotal</dt>
-                <dd>${total}</dd>
+                <dd>KSh {total}</dd>
               </div>
 
               <div className="flex items-center justify-between">
                 <dt className="text-gray-600">Shipping</dt>
-                <dd>$5</dd>
+                <dd>KSh 5</dd>
               </div>
 
               <div className="flex items-center justify-between">
                 <dt className="text-gray-600">Taxes</dt>
-                <dd>${total / 5}</dd>
+                <dd>KSh {total / 5}</dd>
               </div>
 
               <div className="flex items-center justify-between border-t border-gray-200 pt-6">
                 <dt className="text-base">Total</dt>
                 <dd className="text-base">
-                  ${total === 0 ? 0 : Math.round(total + total / 5 + 5)}
+                  KSh {total === 0 ? 0 : Math.round(total + total / 5 + 5)}
                 </dd>
               </div>
             </dl>
@@ -281,7 +281,7 @@ const CheckoutPage = () => {
                     id="name-input"
                     name="name-input"
                     autoComplete="text"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                   />
                 </div>
               </div>
@@ -306,7 +306,7 @@ const CheckoutPage = () => {
                     id="lastname-input"
                     name="lastname-input"
                     autoComplete="text"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                   />
                 </div>
               </div>
@@ -331,7 +331,7 @@ const CheckoutPage = () => {
                     id="phone-input"
                     name="phone-input"
                     autoComplete="text"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                   />
                 </div>
               </div>
@@ -356,7 +356,7 @@ const CheckoutPage = () => {
                     id="email-address"
                     name="email-address"
                     autoComplete="email"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                   />
                 </div>
               </div>
@@ -384,7 +384,7 @@ const CheckoutPage = () => {
                       id="name-on-card"
                       name="name-on-card"
                       autoComplete="cc-name"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.cardName}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -409,7 +409,7 @@ const CheckoutPage = () => {
                       id="card-number"
                       name="card-number"
                       autoComplete="cc-number"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.cardNumber}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -434,7 +434,7 @@ const CheckoutPage = () => {
                       name="expiration-date"
                       id="expiration-date"
                       autoComplete="cc-exp"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.expirationDate}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -459,7 +459,7 @@ const CheckoutPage = () => {
                       name="cvc"
                       id="cvc"
                       autoComplete="csc"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.cvc}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -494,7 +494,7 @@ const CheckoutPage = () => {
                       type="text"
                       id="company"
                       name="company"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.company}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -519,7 +519,7 @@ const CheckoutPage = () => {
                       id="address"
                       name="address"
                       autoComplete="street-address"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.adress}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -543,7 +543,7 @@ const CheckoutPage = () => {
                       type="text"
                       id="apartment"
                       name="apartment"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.apartment}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -568,7 +568,7 @@ const CheckoutPage = () => {
                       id="city"
                       name="city"
                       autoComplete="address-level2"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.city}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -593,7 +593,7 @@ const CheckoutPage = () => {
                       id="region"
                       name="region"
                       autoComplete="address-level1"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.country}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -618,7 +618,7 @@ const CheckoutPage = () => {
                       id="postal-code"
                       name="postal-code"
                       autoComplete="postal-code"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
                       value={checkoutForm.postalCode}
                       onChange={(e) =>
                         setCheckoutForm({
@@ -660,7 +660,7 @@ const CheckoutPage = () => {
               <button
                 type="button"
                 onClick={makePurchase}
-                className="w-full rounded-md border border-transparent bg-blue-500 px-20 py-2 text-lg font-medium text-white shadow-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-gray-50 sm:order-last"
+                className="w-full rounded-md border border-transparent bg-red-600 px-20 py-2 text-lg font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-gray-50 sm:order-last"
               >
                 Pay Now
               </button>

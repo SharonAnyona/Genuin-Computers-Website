@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Product table component on admin dashboard page
 // Name of the component: DashboardProductTable.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <DashboardProductTable />
 // Input parameters: no input parameters
@@ -19,7 +19,7 @@ const DashboardProductTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/products?mode=admin", {cache: "no-store"})
+    fetch("http://localhost:3002/api/products?mode=admin", {cache: "no-store"})
       .then((res) => {
         return res.json();
       })
@@ -44,7 +44,7 @@ const DashboardProductTable = () => {
         </Link>
       </div>
 
-      <div className="xl:ml-5 w-full max-xl:mt-5 overflow-auto w-full h-[80vh]">
+      <div className="xl:ml-5 w-full max-xl:mt-5 overflow-auto h-[80vh]">
         <table className="table table-md table-pin-cols">
           {/* head */}
           <thead>
@@ -101,7 +101,7 @@ const DashboardProductTable = () => {
                     </span>) }
                     
                   </td>
-                  <td>${product?.price}</td>
+                  <td>KSh {product?.price}</td>
                   <th>
                     <Link
                       href={`/admin/products/${product.id}`}

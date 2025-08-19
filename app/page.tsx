@@ -1,21 +1,28 @@
 import {
-  CategoryMenu,
   HeroBanner,
   Incentives,
-  IntroducingSection,
   Newsletter,
   ProductsSection,
+  IntroducingSection,
+  PremiumHeroBanner,
+  CategorySectionsPage,
+  NewArrivalsSection,
+  ShopByBrandSection,
+  RecommendedSection
 } from "@/components";
 
 export default function Home() {
   return (
     <>
-      <HeroBanner />
-       <Incentives />
+      <PremiumHeroBanner/>
+      {/* <HeroBanner /> */}
+      <Incentives />
+      <CategorySectionsPage />
+      <NewArrivalsSection />
+      <ShopByBrandSection />
       <ProductsSection />
-      <CategoryMenu />
-      <IntroducingSection />
-     
+      <RecommendedSection />
+      {/* <IntroducingSection /> */}
       <Newsletter />
     </>
   );

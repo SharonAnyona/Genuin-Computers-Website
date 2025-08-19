@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Sidebar on admin dashboard page
 // Name of the component: DashboardSidebar.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <DashboardSidebar />
 // Input parameters: no input parameters
@@ -23,7 +23,7 @@ const DashboardSidebar = () => {
   return (
     <div className="xl:w-[400px] bg-red-500 h-full max-xl:w-full">
       <Link href="/admin">
-        <div className="flex gap-x-2 w-full hover:bg-blue-600 cursor-pointer items-center py-6 pl-5 text-xl text-white">
+        <div className="flex gap-x-2 w-full hover:bg-red-600 cursor-pointer items-center py-6 pl-5 text-xl text-white">
           <MdDashboard className="text-2xl" />{" "}
           <span className="font-normal">Dashboard</span>
         </div>

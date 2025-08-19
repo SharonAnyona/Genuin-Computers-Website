@@ -5,6 +5,7 @@ import {
   ProductTabs,
   SingleProductDynamicFields,
   AddToWishlistBtn,
+  RecommendedSection,
 } from "@/components";
 import Image from "next/image";
 import { notFound } from "next/navigation";
@@ -22,13 +23,13 @@ interface ImageItem {
 const SingleProductPage = async ({ params }: SingleProductPageProps) => {
   // sending API request for a single product with a given product slug
   const data = await fetch(
-    `http://localhost:3001/api/slugs/${params.productSlug}`
+    `http://localhost:3002/api/slugs/${params.productSlug}`
   );
   const product = await data.json();
 
   // sending API request for more than 1 product image if it exists
   const imagesData = await fetch(
-    `http://localhost:3001/api/images/${product.id}`
+    `http://localhost:3002/api/images/${product.id}`
   );
   const images = await imagesData.json();
 
@@ -64,7 +65,7 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
           <div className="flex flex-col gap-y-7 text-black max-[500px]:text-center">
             <SingleProductRating rating={product?.rating} />
             <h1 className="text-3xl">{product?.title}</h1>
-            <p className="text-xl font-semibold">${product?.price}</p>
+            <p className="text-xl font-semibold">KSh {product?.price}</p>
             <StockAvailabillity stock={94} inStock={product?.inStock} />
             <SingleProductDynamicFields product={product} />
             <div className="flex flex-col gap-y-2 max-[500px]:items-center">
@@ -130,6 +131,7 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
         <div className="py-16">
           <ProductTabs product={product} />
         </div>
+        <RecommendedSection />
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Range with labels for price intented to be on the shop page
 // Name of the component: RangeWithLabels.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <RangeWithLabels />
 // Input parameters: no input parameters
@@ -34,11 +34,11 @@ const RangeWithLabels = () => {
         step="200"
       />
       <div className="w-full flex justify-between text-xs px-2">
-        <span>$0</span>
-        <span>$200</span>
-        <span>$400</span>
-        <span>$600</span>
-        <span>$4000</span>
+        <span>KSh 0</span>
+        <span>KSh 200</span>
+        <span>KSh 400</span>
+        <span>KSh 600</span>
+        <span>KSh 4000</span>
       </div>
     </div>
   );

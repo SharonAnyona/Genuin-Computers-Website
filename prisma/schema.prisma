@@ -19,10 +19,12 @@ model Product {
   title          String
   mainImage      String
   price          Int                      @default(0)
+  oldPrice       Int?
   rating         Int                      @default(0)
   description    String
   manufacturer   String
   inStock        Int                      @default(1)
+  isNew          Boolean?                 @default(false)
   categoryId     String
   category       Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   customerOrders customer_order_product[]

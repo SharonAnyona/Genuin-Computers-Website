@@ -1,60 +1,17 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import CarouselBanner from "./CarouselBanner";
 
-const totalSlides = 10;
+const images1 = [
+  { src: "/1.png", alt: "Banner 1" },
+  { src: "/2.png", alt: "Banner 2" },
+  { src: "/3.png", alt: "Banner 3" },
+  { src: "/4.png", alt: "Banner 4" },
+  { src: "/5.png", alt: "Banner 5" },
+];
 
-const HeroBanner = () => {
-  const [currentSlide, setCurrentSlide] = useState(1);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev % totalSlides) + 1);
-    }, 4000); // Change slide every 4 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="carousel w-full h-[500px] relative overflow-hidden">
-      {[...Array(totalSlides)].map((_, index) => {
-        const slideNumber = index + 1;
-        return (
-          <div
-            key={slideNumber}
-            className={`carousel-item w-full absolute transition-opacity duration-1000 ${
-              currentSlide === slideNumber
-                ? "opacity-100 relative"
-                : "opacity-0"
-            }`}
-          >
-            <img src={`/${slideNumber}.png`} className="w-full object-cover" />
-            <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-              <button
-                className="btn btn-circle"
-                onClick={() =>
-                  setCurrentSlide(
-                    slideNumber === 1 ? totalSlides : slideNumber - 1
-                  )
-                }
-              >
-                ❮
-              </button>
-              <button
-                className="btn btn-circle"
-                onClick={() =>
-                  setCurrentSlide(
-                    slideNumber === totalSlides ? 1 : slideNumber + 1
-                  )
-                }
-              >
-                ❯
-              </button>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-};
+const HeroBanner = () => (
+  <CarouselBanner images={images1} interval={3000} height="h-[400px]" />
+);
 
 export default HeroBanner;

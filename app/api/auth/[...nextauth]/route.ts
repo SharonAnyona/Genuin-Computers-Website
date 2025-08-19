@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import { Account, User as AuthUser } from "next-auth";
+import { Account, User as AuthUser, Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
@@ -8,6 +9,10 @@ import prisma from "@/utils/db";
 import { nanoid } from "nanoid";
 
 export const authOptions: any = {
+  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
+  session: {
+    strategy: "jwt",
+  },
   // Configure one or more authentication providers
   providers: [
     CredentialsProvider({
@@ -18,7 +23,6 @@ export const authOptions: any = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials: any) {
-
         try {
           const user = await prisma.user.findFirst({
             where: {
@@ -31,14 +35,19 @@ export const authOptions: any = {
               user.password!
             );
             if (isPasswordCorrect) {
-              return user;
+              return {
+                id: user.id,
+                email: user.email,
+                role: user.role || "user",
+              } as any;
             }
           }
+          return null;
         } catch (err: any) {
           throw new Error(err);
         }
       },
-    })
+    }),
     // GithubProvider({
     //   clientId: process.env.GITHUB_ID ?? "",
     //   clientSecret: process.env.GITHUB_SECRET ?? "",
@@ -50,6 +59,26 @@ export const authOptions: any = {
     // ...add more providers here if you want. You can find them on nextauth website.
   ],
   callbacks: {
+    async jwt({ token, user }: { token: JWT; user: AuthUser }) {
+      if (user) {
+        // Fetch user role from database and add to token
+        try {
+          const dbUser = await prisma.user.findFirst({
+            where: { email: user.email! }
+          });
+          token.role = dbUser?.role || "user";
+        } catch (error) {
+          console.error("Error fetching user role:", error);
+          token.role = "user";
+        }
+      }
+      return token;
+    },
+    async session({ session, token }: { session: Session; token: JWT }) {
+      // Add role to session
+      (session.user as any).role = token.role;
+      return session;
+    },
     async signIn({ user, account }: { user: AuthUser; account: Account }) {
       if (account?.provider == "credentials") {
         return true;

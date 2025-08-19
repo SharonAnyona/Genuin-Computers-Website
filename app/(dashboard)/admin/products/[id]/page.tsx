@@ -27,7 +27,7 @@ const DashboardProductDetails = ({
     const requestOptions = {
       method: "DELETE",
     };
-    fetch(`http://localhost:3001/api/products/${id}`, requestOptions)
+    fetch(`http://localhost:3002/api/products/${id}`, requestOptions)
       .then((response) => {
         if (response.status !== 204) {
           if (response.status === 400) {
@@ -65,7 +65,7 @@ const DashboardProductDetails = ({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
     };
-    fetch(`http://localhost:3001/api/products/${id}`, requestOptions)
+    fetch(`http://localhost:3002/api/products/${id}`, requestOptions)
       .then((response) => {
         if (response.status === 200) {
           return response.json();
@@ -85,7 +85,7 @@ const DashboardProductDetails = ({
     formData.append("uploadedFile", file);
 
     try {
-      const response = await fetch("http://localhost:3001/api/main-image", {
+      const response = await fetch("http://localhost:3002/api/main-image", {
         method: "POST",
         body: formData,
       });
@@ -103,7 +103,7 @@ const DashboardProductDetails = ({
 
   // fetching main product data including other product images
   const fetchProductData = async () => {
-    fetch(`http://localhost:3001/api/products/${id}`)
+    fetch(`http://localhost:3002/api/products/${id}`)
       .then((res) => {
         return res.json();
       })
@@ -111,7 +111,7 @@ const DashboardProductDetails = ({
         setProduct(data);
       });
 
-    const imagesData = await fetch(`http://localhost:3001/api/images/${id}`, {
+    const imagesData = await fetch(`http://localhost:3002/api/images/${id}`, {
       cache: "no-store",
     });
     const images = await imagesData.json();
@@ -120,7 +120,7 @@ const DashboardProductDetails = ({
 
   // fetching all product categories. It will be used for displaying categories in select category input
   const fetchCategories = async () => {
-    fetch(`http://localhost:3001/api/categories`)
+    fetch(`http://localhost:3002/api/categories`)
       .then((res) => {
         return res.json();
       })
@@ -320,13 +320,13 @@ const DashboardProductDetails = ({
           <button
             type="button"
             onClick={updateProduct}
-            className="uppercase bg-blue-500 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
           >
             Update product
           </button>
           <button
             type="button"
-            className="uppercase bg-red-600 px-10 py-5 text-lg border border-black border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
+            className="uppercase bg-red-600 px-10 py-5 text-lg border border-gray-300 font-bold text-white shadow-sm hover:bg-red-700 hover:text-white focus:outline-none focus:ring-2"
             onClick={deleteProduct}
           >
             Delete product

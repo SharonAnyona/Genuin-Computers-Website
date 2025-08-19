@@ -1,7 +1,7 @@
 // *********************
 // Role of the component: Wishlist item component for wishlist page
 // Name of the component: WishItem.tsx
-// Developer: Aleksandar Kuzmanovic
+// Developer:Sharon Anyona
 // Version: 1.0
 // Component call: <WishItem id={id} title={title} price={price} image={image} slug={slug} stockAvailabillity={stockAvailabillity} />
 // Input parameters: ProductInWishlist interface
@@ -43,7 +43,7 @@ const WishItem = ({
 
   const getUserByEmail = async () => {
     if (session?.user?.email) {
-      fetch(`http://localhost:3001/api/users/email/${session?.user?.email}`, {
+      fetch(`http://localhost:3002/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
         .then((response) => response.json())
@@ -57,7 +57,7 @@ const WishItem = ({
     
     if (userId) {
 
-      fetch(`http://localhost:3001/api/wishlist/${userId}/${productId}`, {method: "DELETE"}).then(
+      fetch(`http://localhost:3002/api/wishlist/${userId}/${productId}`, {method: "DELETE"}).then(
         (response) => {
           removeFromWishlist(productId);
           toast.success("Item removed from your wishlist");
