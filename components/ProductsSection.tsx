@@ -12,10 +12,10 @@ import React from "react";
 import ProductItem from "./ProductItem";
 import Heading from "./Heading";
 import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
-
+import { BACKEND_URL } from "@/config";
 const ProductsSection = async () => {
   // sending API request for getting all products
-  const data = await fetch("http://localhost:3002/api/products");
+  const data = await fetch(`${BACKEND_URL}/api/products`);
   const products = await data.json();
 
   return (

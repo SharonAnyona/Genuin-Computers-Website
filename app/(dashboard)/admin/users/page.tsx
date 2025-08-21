@@ -3,13 +3,13 @@ import { CustomButton, DashboardSidebar } from "@/components";
 import { nanoid } from "nanoid";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-
+import { BACKEND_URL } from "@/config";
 const DashboardUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     // sending API request for all users
-    fetch("http://localhost:3002/api/users")
+    fetch(`${BACKEND_URL}/api/users`)
       .then((res) => {
         return res.json();
       })

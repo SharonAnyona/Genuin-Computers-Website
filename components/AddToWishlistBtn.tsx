@@ -16,6 +16,7 @@ import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { FaHeartCrack } from "react-icons/fa6";
 import { FaHeart } from "react-icons/fa6";
+import { BACKEND_URL } from "@/config";
 
 interface AddToWishlistBtnProps {
   product: Product;
@@ -31,12 +32,12 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
     // getting user by email so I can get his user id
     if (session?.user?.email) {
       // sending fetch request to get user id because we will need it for saving wish item
-      fetch(`http://localhost:3002/api/users/email/${session?.user?.email}`, {
+      fetch(`${BACKEND_URL}/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
         .then((response) => response.json())
         .then((data) =>
-          fetch("http://localhost:3002/api/wishlist", {
+          fetch(`${BACKEND_URL}/api/wishlist`, {
             method: "POST",
             headers: {
               Accept: "application/json, text/plain, */*",
@@ -65,13 +66,13 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
   const removeFromWishlistFun = async () => {
     if (session?.user?.email) {
       // sending fetch request to get user id because we will need to delete wish item
-      fetch(`http://localhost:3002/api/users/email/${session?.user?.email}`, {
+      fetch(`${BACKEND_URL}/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
         .then((response) => response.json())
         .then((data) => {
           return fetch(
-            `http://localhost:3002/api/wishlist/${data?.id}/${product?.id}`,
+            `${BACKEND_URL}/api/wishlist/${data?.id}/${product?.id}`,
             {
               method: "DELETE",
             }
@@ -87,14 +88,14 @@ const AddToWishlistBtn = ({ product, slug }: AddToWishlistBtnProps) => {
   const isInWishlist = async () => {
     // sending fetch request to get user id because we will need it for cheching whether the product is in wishlist
     if (session?.user?.email) {
-      fetch(`http://localhost:3002/api/users/email/${session?.user?.email}`, {
+      fetch(`${BACKEND_URL}/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
         .then((response) => response.json())
         .then((data) => {
           // checking is product in wishlist
           return fetch(
-            `http://localhost:3002/api/wishlist/${data?.id}/${product?.id}`
+              `${BACKEND_URL}/api/wishlist/${data?.id}/${product?.id}`
           );
         })
         .then((response) => response.json())

@@ -3,6 +3,7 @@ import { DashboardSidebar } from "@/components";
 import { isValidEmailAddressFormat } from "@/lib/utils";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { BACKEND_URL } from "@/config";
 
 const DashboardCreateNewUser = () => {
   const [userInput, setUserInput] = useState({
@@ -28,7 +29,7 @@ const DashboardCreateNewUser = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(userInput),
         };
-        fetch(`http://localhost:3002/api/users`, requestOptions)
+        fetch(`${BACKEND_URL}/api/users`, requestOptions)
           .then((response) => {
             if(response.status === 201){
               return response.json();

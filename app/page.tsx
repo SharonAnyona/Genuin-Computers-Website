@@ -14,13 +14,13 @@ import {
 export default function Home() {
   return (
     <>
-      <PremiumHeroBanner/>
-      {/* <HeroBanner /> */}
+      {/* <PremiumHeroBanner/> */}
+      <HeroBanner />
       <Incentives />
       <CategorySectionsPage />
       <NewArrivalsSection />
       <ShopByBrandSection />
-      <ProductsSection />
+      {/* <ProductsSection /> */}
       <RecommendedSection />
       {/* <IntroducingSection /> */}
       <Newsletter />

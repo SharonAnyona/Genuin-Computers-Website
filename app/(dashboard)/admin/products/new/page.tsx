@@ -4,7 +4,7 @@ import { convertCategoryNameToURLFriendly as convertSlugToURLFriendly } from "@/
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-
+import { BACKEND_URL } from "@/config";
 const AddNewProduct = () => {
   const [product, setProduct] = useState<{
     title: string;
@@ -43,7 +43,7 @@ const AddNewProduct = () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(product),
     };
-    fetch(`http://localhost:3002/api/products`, requestOptions)
+    fetch(`${BACKEND_URL}/api/products`, requestOptions)
       .then((response) => {
         if (response.status === 201) {
           return response.json();
@@ -74,7 +74,7 @@ const AddNewProduct = () => {
     formData.append("uploadedFile", file);
 
     try {
-      const response = await fetch("http://localhost:3002/api/main-image", {
+      const response = await fetch(`${BACKEND_URL}/api/main-image`, {
         method: "POST",
         body: formData,
       });
@@ -90,7 +90,7 @@ const AddNewProduct = () => {
   };
 
   const fetchCategories = async () => {
-    fetch(`http://localhost:3002/api/categories`)
+    fetch(`${BACKEND_URL}/api/categories`)
       .then((res) => {
         return res.json();
       })

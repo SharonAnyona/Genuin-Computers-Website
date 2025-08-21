@@ -129,7 +129,7 @@ const CartPage = () => {
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">Subtotal</dt>
                   <dd className="text-sm font-medium text-gray-900">
-                    ${total}
+                    KSh {total}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
@@ -167,7 +167,7 @@ const CartPage = () => {
                     </a>
                   </dt>
                   <dd className="text-sm font-medium text-gray-900">
-                    ${total / 5}
+                    KSh {total / 5}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
@@ -175,7 +175,7 @@ const CartPage = () => {
                     Order total
                   </dt>
                   <dd className="text-base font-medium text-gray-900">
-                    ${total === 0 ? 0 : Math.round(total + total / 5 + 5)}
+                    KSh {total === 0 ? 0 : Math.round(total + total / 5 + 5)}
                   </dd>
                 </div>
               </dl>

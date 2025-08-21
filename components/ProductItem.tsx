@@ -143,7 +143,7 @@ const ProductItem = ({
 
   return (
     <div 
-      className={`bg-white rounded-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-700 border border-gray-100/50 group hover:-translate-y-3 hover:scale-[1.03] ${layoutClasses[layout]} relative backdrop-blur-sm`}
+      className={`bg-white rounded-b-3xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-700 border border-gray-100/50 group hover:-translate-y-3 hover:scale-[1.03] ${layoutClasses[layout]} relative backdrop-blur-sm`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -200,29 +200,38 @@ const ProductItem = ({
           </div>
 
           {/* Premium status badges */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+          <div className="absolute top-0 left-0 flex flex-col items-start z-20">
             {isNew && (
-              <span className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl animate-pulse border border-white/20 backdrop-blur-sm">
-                <Zap size={12} className="inline mr-1" />
-                NEW
-              </span>
+              <div className="relative mb-2">
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 transform rotate-45"></div>
+                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 shadow-lg border border-white/20 relative z-10 inline-flex items-center">
+                  <Zap size={10} className="mr-1" />
+                  NEW
+                </span>
+              </div>
             )}
             {oldPrice && (
-              <span className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl border border-white/20 backdrop-blur-sm">
-                -{discountPercentage}% OFF
-              </span>
+              <div className="relative mb-2">
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 transform rotate-45"></div>
+                <span className="bg-orange-500 text-white text-xs font-bold px-3 py-1.5 shadow-lg border border-white/20 relative z-10">
+                  -{discountPercentage}% OFF
+                </span>
+              </div>
             )}
             {!isInStock && (
-              <span className="bg-gradient-to-r from-gray-600 to-gray-800 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl border border-white/20 backdrop-blur-sm">
-                OUT OF STOCK
-              </span>
+              <div className="relative">
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-700 transform rotate-45"></div>
+                <span className="bg-gray-700 text-white text-xs font-bold px-3 py-1.5 shadow-lg border border-white/20 relative z-10">
+                  SOLD OUT
+                </span>
+              </div>
             )}
           </div>
         </div>
 
         {/* Manufacturer badge */}
         {product.manufacturer && (
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 left-3">
             <span className="bg-white bg-opacity-90 text-gray-700 text-xs font-medium px-2 py-1 rounded-full shadow-sm">
               {product.manufacturer}
             </span>
@@ -253,7 +262,7 @@ const ProductItem = ({
           </div>
           <div className="flex items-center space-x-2">
             {isInStock && (
-              <span className="flex items-center text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
+              <span className="flex items-center text-xs text-blue-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
                 <Shield size={12} className="mr-1" />
                 In Stock
               </span>

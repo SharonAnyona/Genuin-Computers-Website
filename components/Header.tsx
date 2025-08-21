@@ -81,7 +81,7 @@ const Header = () => {
   }, [session?.user?.email, wishlist.length]);
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
+    <header  className="bg-white shadow-md sticky top-0 z-50">
       <HeaderTop />
       {pathname.startsWith("/admin") === false && (
         <div className="sticky h-28 bg-white flex items-center justify-between px-12 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">

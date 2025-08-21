@@ -16,7 +16,7 @@ import Link from "next/link";
 import CarouselBanner from "./CarouselBanner";
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
-
+import { BACKEND_URL } from "@/config"; 
 
 interface CarouselImage {
   src: string;
@@ -61,7 +61,7 @@ const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await fetch("http://localhost:3002/api/products");
+        const data = await fetch(`${BACKEND_URL}/api/products`);
         const productsData = await data.json();
         setProducts(productsData || []);
       } catch (error) {
@@ -89,8 +89,7 @@ const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
 
   return (
     <section className="w-full mb-12">
-      {/* Title Row */}
-      <div className="flex bg-gradient-to-r from-red-600 to-black rounded-t-md items-center justify-between mb-0 px-4 sm:px-6 lg:px-8 py-2 shadow-md">
+      <div className="flex bg-red-300 items-center justify-between mb-0 px-6 py-2 shadow-lg">
         <h2 className="text-2xl md:text-2xl font-bold text-gray-50">
           {title}
         </h2>

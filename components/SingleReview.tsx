@@ -19,7 +19,7 @@ const SingleReview = () => {
         />
         <div className="font-medium dark:text-white">
           <p>
-            Jese Leos{" "}
+            Shay Anyona{" "}
             <time className="block text-sm text-gray-500 dark:text-gray-400">
               Joined on August 2014
             </time>

@@ -12,7 +12,12 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronRightIcon, HeartIcon, TrendingUpIcon, UserIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  HeartIcon,
+  TrendingUpIcon,
+  UserIcon,
+} from "lucide-react";
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
 
@@ -27,7 +32,7 @@ const RecommendedSection: React.FC = () => {
       title: product.title,
       price: product.price,
       image: product.mainImage,
-      amount: 1
+      amount: 1,
     });
     calculateTotals();
     toast.success(`${product.title} added to cart!`);
@@ -38,13 +43,15 @@ const RecommendedSection: React.FC = () => {
       try {
         const data = await fetch("http://localhost:3002/api/products");
         const productsData = await data.json();
-        
+
         // Simple recommendation logic: high-rated products with good stock
         const recommended = productsData
-          .filter((product: Product) => product.rating >= 4 && product.inStock > 0)
+          .filter(
+            (product: Product) => product.rating >= 4 && product.inStock > 0
+          )
           .sort((a: Product, b: Product) => b.rating - a.rating)
           .slice(0, 8);
-        
+
         setRecommendedProducts(recommended);
       } catch (error) {
         console.error("Error fetching recommended products:", error);
@@ -60,7 +67,7 @@ const RecommendedSection: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
       </div>
     );
   }
@@ -72,9 +79,9 @@ const RecommendedSection: React.FC = () => {
   return (
     <section className="w-full mb-12">
       {/* Title Row */}
-      <div className="flex bg-gradient-to-r from-purple-600 to-pink-600 rounded-t-md items-center justify-between mb-0 px-4 sm:px-6 lg:px-8 py-3 shadow-md">
+      <div className="flex bg-red-600 rounded-t-md items-center justify-between mb-0 px-4 sm:px-6 lg:px-8 py-3 shadow-md">
         <h2 className="text-2xl md:text-2xl font-bold text-white flex items-center gap-3">
-          <UserIcon size={24} className="text-purple-200" />
+          <UserIcon size={24} className="text-red-200" />
           Recommended for You
         </h2>
         <Link
@@ -93,7 +100,7 @@ const RecommendedSection: React.FC = () => {
       <div className="bg-white rounded-b-md shadow-lg p-6">
         {/* Recommendation Reasons */}
         <div className="flex flex-wrap gap-3 mb-6">
-          <span className="inline-flex items-center gap-2 bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-medium">
+          <span className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
             <TrendingUpIcon size={14} />
             Top Rated
           </span>
@@ -112,12 +119,12 @@ const RecommendedSection: React.FC = () => {
           {recommendedProducts.map((product, index) => (
             <div
               key={product.id}
-              className="group bg-gradient-to-br from-white to-gray-50 rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300 overflow-hidden relative"
+              className="group bg-white rounded-xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all duration-300 overflow-hidden relative"
             >
               {/* Recommendation Badge */}
               {index === 0 && (
                 <div className="absolute top-3 left-3 z-10">
-                  <span className="bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+                  <span className="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
                     #1 PICK
                   </span>
                 </div>
@@ -125,9 +132,13 @@ const RecommendedSection: React.FC = () => {
 
               <Link href={`/product/${product.slug}`} className="block p-4">
                 {/* Product Image */}
-                <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 via-white to-gray-100">
+                <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-white">
                   <img
-                    src={product.mainImage ? `/${product.mainImage}` : "/product_placeholder.jpg"}
+                    src={
+                      product.mainImage
+                        ? `/${product.mainImage}`
+                        : "/product_placeholder.jpg"
+                    }
                     alt={product.title}
                     className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500"
                   />
@@ -151,19 +162,23 @@ const RecommendedSection: React.FC = () => {
                           <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
                         </svg>
                       ))}
-                      <span className="text-xs text-gray-500 ml-1">({product.rating})</span>
+                      <span className="text-xs text-gray-500 ml-1">
+                        ({product.rating})
+                      </span>
                     </div>
-                    <span className="text-xs text-purple-600 font-medium">Recommended</span>
+                    <span className="text-xs text-red-600 font-medium">
+                      Recommended
+                    </span>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition-colors duration-200 line-clamp-2 leading-tight">
+                  <h3 className="font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-200 line-clamp-2 leading-tight">
                     {product.title}
                   </h3>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-purple-600">
+                        <span className="text-lg font-bold text-red-600">
                           KSh {product.price.toFixed(2)}
                         </span>
                         {product.oldPrice && (
@@ -174,7 +189,8 @@ const RecommendedSection: React.FC = () => {
                       </div>
                       {product.oldPrice && (
                         <span className="text-xs text-green-600 font-medium">
-                          Save KSh {(product.oldPrice - product.price).toFixed(2)}
+                          Save KSh{" "}
+                          {(product.oldPrice - product.price).toFixed(2)}
                         </span>
                       )}
                     </div>
@@ -184,21 +200,24 @@ const RecommendedSection: React.FC = () => {
 
               {/* Add to Cart Button */}
               <div className="px-4 pb-4">
-                <button 
+                <button
                   onClick={() => handleAddToCart(product)}
-                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-2 px-4 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
+                  className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
                 >
                   Add to Cart
                 </button>
               </div>
 
               {/* Recommendation Reason */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-purple-600/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <p className="text-xs text-purple-700 font-medium text-center">
-                  {index === 0 ? "Most popular in your category" : 
-                   index === 1 ? "Highly rated by customers" :
-                   index === 2 ? "Great value for money" :
-                   "Frequently bought together"}
+              <div className="absolute bottom-0 left-0 right-0 bg-red-600/10 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <p className="text-xs text-red-700 font-medium text-center">
+                  {index === 0
+                    ? "Most popular in your category"
+                    : index === 1
+                    ? "Highly rated by customers"
+                    : index === 2
+                    ? "Great value for money"
+                    : "Frequently bought together"}
                 </p>
               </div>
             </div>
@@ -209,7 +228,7 @@ const RecommendedSection: React.FC = () => {
         <div className="text-center mt-8">
           <Link
             href="/recommended"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all duration-200 transform hover:scale-105"
+            className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105"
           >
             <span>Discover More Recommendations</span>
             <ChevronRightIcon size={16} />

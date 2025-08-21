@@ -32,7 +32,7 @@ const CategorySectionsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Category Sections */}
-      <div className="max-w-7xl mx-auto py-12">
+      <div className="w-full py-12">
         {/* Flash Sale Section */}
         <ProductCategorySection
           title="⚡ Flash Sale"
@@ -45,45 +45,35 @@ const CategorySectionsPage: React.FC = () => {
         <ProductCategorySection
           title="🖥️ Monitors"
           categorySlug="monitors"
-          bannerImages={imagesmonitors}
-          bannerHeight="h-[300px]"
-          bannerInterval={3000}
+         
         />
 
         {/* MacBook Section */}
         <ProductCategorySection
           title="🍎 MacBook"
           categorySlug="macbook"
-          bannerImages={images2}
-          bannerHeight="h-[300px]"
-          bannerInterval={3000}
+          
         />
 
         {/* Desktop Computers Section */}
         <ProductCategorySection
           title="🖥️ Desktop Computers"
           categorySlug="desktop-computers"
-          bannerImages={imagesmonitors}
-          bannerHeight="h-[300px]"
-          bannerInterval={3000}
+          
         />
 
         {/* Gaming Laptops Section */}
         <ProductCategorySection
           title="🎮 Gaming Laptops"
           categorySlug="gaming-laptops"
-          bannerImages={imagesmonitors}
-          bannerHeight="h-[300px]"
-          bannerInterval={3000}
+          
         />
 
         {/* Accessories Section */}
         <ProductCategorySection
           title="🔌 Accessories"
           categorySlug="accessories"
-          bannerImages={imagesmonitors}
-          bannerHeight="h-[300px]"
-          bannerInterval={3000}
+          
         />
       </div>
     </div>

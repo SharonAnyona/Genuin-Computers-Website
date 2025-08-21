@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { isValidCardNumber, isValidCreditCardCVVOrCVC, isValidCreditCardExpirationDate, isValidEmailAddressFormat, isValidNameOrLastname } from "@/lib/utils";
-
+import { BACKEND_URL } from "@/config";
 const CheckoutPage = () => {
   const [checkoutForm, setCheckoutForm] = useState({
     name: "",
@@ -82,7 +82,7 @@ const CheckoutPage = () => {
       }
 
       // sending API request for creating a order
-      const response = fetch("http://localhost:3002/api/orders", {
+      const response = fetch(`${BACKEND_URL}/api/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -147,7 +147,7 @@ const CheckoutPage = () => {
     productQuantity: number
   ) => {
     // sending API POST request for the table customer_order_product that does many to many relatioship for order and product
-    const response = await fetch("http://localhost:3002/api/order-product", {
+    const response = await fetch(`${BACKEND_URL}/api/order-product`, {
       method: "POST", // or 'PUT'
       headers: {
         "Content-Type": "application/json",
