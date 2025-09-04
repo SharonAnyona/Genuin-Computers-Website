@@ -76,7 +76,11 @@ async function getCategory(request, response) {
 
 async function getAllCategories(request, response) {
   try {
-    const categories = await prisma.category.findMany({});
+    const categories = await prisma.category.findMany({
+      include: {
+        subcategories: true,
+      },
+    });
     return response.json(categories);
   } catch (error) {
     return response.status(500).json({ error: "Error fetching categories" });

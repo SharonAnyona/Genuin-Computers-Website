@@ -5,6 +5,9 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { BACKEND_URL } from "@/config";
+
+// Extend Category type locally to include subcategories for type safety
+type CategoryWithSubcategories = Category & { subcategories?: any[] };
 const AddNewProduct = () => {
   const [product, setProduct] = useState<{
     title: string;
@@ -15,6 +18,7 @@ const AddNewProduct = () => {
     description: string;
     slug: string;
     categoryId: string;
+    subcategoryId?: string;
   }>({
     title: "",
     price: 0,
@@ -24,8 +28,10 @@ const AddNewProduct = () => {
     description: "",
     slug: "",
     categoryId: "",
+    subcategoryId: "",
   });
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<CategoryWithSubcategories[]>([]);
+  const [subcategories, setSubcategories] = useState<any[]>([]);
 
   const addProduct = async () => {
     if (
@@ -91,27 +97,40 @@ const AddNewProduct = () => {
 
   const fetchCategories = async () => {
     fetch(`${BACKEND_URL}/api/categories`)
-      .then((res) => {
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         setCategories(data);
-        setProduct({
-          title: "",
-          price: 0,
-          manufacturer: "",
-          inStock: 1,
-          mainImage: "",
-          description: "",
-          slug: "",
-          categoryId: data[0]?.id,
-        });
+        setProduct((prev) => ({
+          ...prev,
+          categoryId: data[0]?.id || "",
+          subcategoryId: "",
+        }));
+        // Set subcategories for the first category
+        if (data[0]?.subcategories) {
+          setSubcategories(data[0].subcategories);
+        } else {
+          setSubcategories([]);
+        }
       });
   };
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  // When category changes, update subcategories
+  useEffect(() => {
+    const selectedCategory = categories.find(
+      (cat) => cat.id === product.categoryId
+    );
+    if (selectedCategory && selectedCategory.subcategories) {
+      setSubcategories(selectedCategory.subcategories);
+    } else {
+      setSubcategories([]);
+    }
+    // Reset subcategoryId if category changes
+    setProduct((prev) => ({ ...prev, subcategoryId: "" }));
+  }, [product.categoryId, categories]);
 
   return (
     <div className="bg-white flex justify-start max-w-screen-2xl mx-auto xl:h-full max-xl:flex-col max-xl:gap-y-5">
@@ -162,13 +181,45 @@ const AddNewProduct = () => {
               className="select select-bordered"
               value={product?.categoryId}
               onChange={(e) =>
-                setProduct({ ...product, categoryId: e.target.value })
+                setProduct({
+                  ...product,
+                  categoryId: e.target.value,
+                  subcategoryId: "",
+                })
               }
             >
               {categories &&
                 categories.map((category: any) => (
                   <option key={category?.id} value={category?.id}>
                     {category?.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+        </div>
+        {/* Subcategory Dropdown */}
+        <div>
+          <label className="form-control w-full max-w-xs">
+            <div className="label">
+              <span className="label-text">Subcategory:</span>
+            </div>
+            <select
+              className="select select-bordered"
+              value={product?.subcategoryId || ""}
+              onChange={(e) =>
+                setProduct({ ...product, subcategoryId: e.target.value })
+              }
+              disabled={subcategories.length === 0}
+            >
+              <option value="">
+                {subcategories.length === 0
+                  ? "No subcategories"
+                  : "Select subcategory"}
+              </option>
+              {subcategories &&
+                subcategories.map((subcategory: any) => (
+                  <option key={subcategory.id} value={subcategory.id}>
+                    {subcategory.name}
                   </option>
                 ))}
             </select>

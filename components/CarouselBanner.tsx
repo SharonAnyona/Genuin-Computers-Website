@@ -12,8 +12,12 @@ interface CarouselBannerProps {
   height?: string;
 }
 
-const CarouselBanner: React.FC<CarouselBannerProps> = ({ images, interval = 4000, height = "h-[500px]" }) => {
- const totalSlides = images.length;
+const CarouselBanner: React.FC<CarouselBannerProps> = ({
+  images,
+  interval = 4000,
+  height = "h-[500px]",
+}) => {
+  const totalSlides = images.length;
   const [currentSlide, setCurrentSlide] = useState(1);
 
   useEffect(() => {
@@ -26,14 +30,16 @@ const CarouselBanner: React.FC<CarouselBannerProps> = ({ images, interval = 4000
   if (!images || images.length === 0) return null;
 
   return (
-    <div className={`carousel w-full ${height} relative overflow-hidden`}>
+    <div className={`carousel w-full ${height} relative overflow-hidden z-0`}>
       {images.map((img, index) => {
         const slideNumber = index + 1;
         return (
           <div
             key={slideNumber}
             className={`carousel-item w-full absolute transition-opacity duration-1000 ${
-              currentSlide === slideNumber ? "opacity-100 relative" : "opacity-0"
+              currentSlide === slideNumber
+                ? "opacity-100 relative"
+                : "opacity-0"
             }`}
           >
             <img src={img.src} alt={img.alt} className="w-full object-cover" />

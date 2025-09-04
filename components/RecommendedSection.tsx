@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
+import { BACKEND_URL } from "@/config";
 
 const RecommendedSection: React.FC = () => {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
@@ -41,16 +42,25 @@ const RecommendedSection: React.FC = () => {
   useEffect(() => {
     const fetchRecommendedProducts = async () => {
       try {
-        const data = await fetch("http://localhost:3002/api/products");
+        const data = await fetch(`${BACKEND_URL}/api/products`, {
+          cache: "no-store",
+        });
         const productsData = await data.json();
 
         // Simple recommendation logic: high-rated products with good stock
-        const recommended = productsData
+        let recommended = productsData
           .filter(
             (product: Product) => product.rating >= 4 && product.inStock > 0
           )
           .sort((a: Product, b: Product) => b.rating - a.rating)
           .slice(0, 8);
+
+        // Fallback: if no items matched, show a few available products
+        if (!recommended || recommended.length === 0) {
+          recommended = productsData
+            .filter((p: Product) => p.inStock > 0)
+            .slice(0, 8);
+        }
 
         setRecommendedProducts(recommended);
       } catch (error) {
@@ -73,7 +83,21 @@ const RecommendedSection: React.FC = () => {
   }
 
   if (!recommendedProducts || recommendedProducts.length === 0) {
-    return null;
+    return (
+      <section className="w-full mb-12">
+        <div className="flex bg-red-600 rounded-t-md items-center justify-between mb-0 px-4 sm:px-6 lg:px-8 py-3 shadow-md">
+          <h2 className="text-2xl md:text-2xl font-bold text-white flex items-center gap-3">
+            <UserIcon size={24} className="text-red-200" />
+            Recommended for You
+          </h2>
+        </div>
+        <div className="bg-white rounded-b-md shadow-lg p-6">
+          <p className="text-gray-600">
+            No recommendations available right now. Check back soon.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   return (
