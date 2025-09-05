@@ -2,6 +2,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function getAllProducts(request, response) {
+  // Debug: print raw query string
+  console.log("Raw query string:", request.url);
   const mode = request.query.mode || "";
   // checking if we are on the admin products page because we don't want to have filtering, sorting and pagination there
   if (mode === "admin") {
@@ -165,6 +167,11 @@ async function getAllProducts(request, response) {
 
     let products;
 
+    // Debug: print filterObj and whereClause
+    console.log("Product Query Debug:");
+    console.log("filterObj:", JSON.stringify(filterObj, null, 2));
+    console.log("whereClause:", JSON.stringify(whereClause, null, 2));
+
     if (Object.keys(filterObj).length === 0) {
       products = await prisma.product.findMany({
         skip: (page - 1) * 10,
@@ -208,7 +215,7 @@ async function getAllProducts(request, response) {
           where: {
             ...whereClause,
             category: {
-              name: {
+              slug: {
                 equals: filterObj.category.equals,
               },
             },
@@ -239,6 +246,9 @@ async function getAllProducts(request, response) {
         });
       }
     }
+
+    // Debug: print product count
+    console.log("Returned products:", products.length);
 
     return response.json(products);
   }

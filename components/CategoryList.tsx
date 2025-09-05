@@ -88,8 +88,6 @@ const CategoryList = () => {
               <div
                 key={item.id}
                 className={`relative group ${isOpen ? "z-[100002]" : ""}`}
-                onMouseEnter={() => scheduleOpen(item.id)}
-                onMouseLeave={scheduleClose}
               >
                 <Link
                   href={item.href}
@@ -101,7 +99,6 @@ const CategoryList = () => {
                         : "text-gray-700 border-transparent hover:text-red-600 hover:border-red-400 hover:bg-gray-100 hover:shadow-md hover:scale-105"
                     } flex items-center gap-2 cursor-pointer`}
                   style={{ minWidth: 120 }}
-                  onClick={() => setActiveIndex(index)}
                   onFocus={() => scheduleOpen(item.id)}
                   onBlur={scheduleClose}
                   aria-expanded={
@@ -115,9 +112,7 @@ const CategoryList = () => {
 
                 {/* Subcategories Dropdown - always visible for testing */}
                 {item.subcategories && item.subcategories.length > 0 && (
-                  <div
-                    className="absolute top-full left-0 z-[100003] mt-1 w-64 bg-white border border-gray-200 rounded-b-lg shadow-2xl pointer-events-auto opacity-100 scale-100 transition-all duration-200"
-                  >
+                  <div className="absolute top-full left-0 z-[100003] mt-1 w-64 bg-white border border-gray-200 rounded-b-lg shadow-2xl pointer-events-auto opacity-100 scale-100 transition-all duration-200">
                     <div className="p-4">
                       <div className="grid grid-cols-1 gap-2">
                         {item.subcategories.map(
