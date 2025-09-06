@@ -15,6 +15,7 @@ import { useSession } from "next-auth/react";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
 import toast from "react-hot-toast";
 import CartElement from "./CartElement";
+import { BACKEND_URL } from "@/config";
 
 const ProductItem = ({
   product,
@@ -72,7 +73,7 @@ const ProductItem = ({
       if (isProductInWishlist) {
         // Remove from wishlist
         const userResponse = await fetch(
-          `http://localhost:3002/api/users/email/${session.user.email}`,
+          `${BACKEND_URL}/api/users/email/${session.user.email}`,
           {
             cache: "no-store",
           }
@@ -80,7 +81,7 @@ const ProductItem = ({
         const userData = await userResponse.json();
 
         await fetch(
-          `http://localhost:3002/api/wishlist/${userData.id}/${product.id}`,
+          `${BACKEND_URL}/api/wishlist/${userData.id}/${product.id}`,
           {
             method: "DELETE",
           }
@@ -99,14 +100,14 @@ const ProductItem = ({
       } else {
         // Add to wishlist
         const userResponse = await fetch(
-          `http://localhost:3002/api/users/email/${session.user.email}`,
+          `${BACKEND_URL}/api/users/email/${session.user.email}`,
           {
             cache: "no-store",
           }
         );
         const userData = await userResponse.json();
 
-        await fetch("http://localhost:3002/api/wishlist", {
+        await fetch(`${BACKEND_URL}/api/wishlist`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -143,7 +144,7 @@ const ProductItem = ({
       if (session?.user?.email) {
         try {
           const userResponse = await fetch(
-            `http://localhost:3002/api/users/email/${session.user.email}`,
+            `${BACKEND_URL}/api/users/email/${session.user.email}`,
             {
               cache: "no-store",
             }
@@ -151,7 +152,7 @@ const ProductItem = ({
           const userData = await userResponse.json();
 
           const wishlistResponse = await fetch(
-            `http://localhost:3002/api/wishlist/${userData.id}/${product.id}`
+            `${BACKEND_URL}/api/wishlist/${userData.id}/${product.id}`
           );
           const wishlistData = await wishlistResponse.json();
 

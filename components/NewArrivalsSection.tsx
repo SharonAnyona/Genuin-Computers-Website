@@ -15,6 +15,7 @@ import Link from "next/link";
 import { ChevronRightIcon, StarIcon, ClockIcon } from "lucide-react";
 import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
+import { BACKEND_URL } from "@/config";
 
 const NewArrivalsSection: React.FC = () => {
   const [newProducts, setNewProducts] = useState<Product[]>([]);
@@ -36,7 +37,7 @@ const NewArrivalsSection: React.FC = () => {
   useEffect(() => {
     const fetchNewProducts = async () => {
       try {
-        const data = await fetch("http://localhost:3002/api/products");
+        const data = await fetch(`${BACKEND_URL}/api/products`);
         const productsData = await data.json();
         
         // Filter for new products

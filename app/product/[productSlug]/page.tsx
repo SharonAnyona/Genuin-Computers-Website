@@ -13,6 +13,11 @@ import React from "react";
 import { FaSquareFacebook } from "react-icons/fa6";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { FaSquarePinterest } from "react-icons/fa6";
+import { BACKEND_URL } from "@/config";
+
+interface SingleProductPageProps {
+  params: { productSlug: string };
+}
 
 interface ImageItem {
   imageID: string;
@@ -23,13 +28,13 @@ interface ImageItem {
 const SingleProductPage = async ({ params }: SingleProductPageProps) => {
   // sending API request for a single product with a given product slug
   const data = await fetch(
-    `http://localhost:3002/api/slugs/${params.productSlug}`
+    `${BACKEND_URL}/api/slugs/${params.productSlug}`
   );
   const product = await data.json();
 
   // sending API request for more than 1 product image if it exists
   const imagesData = await fetch(
-    `http://localhost:3002/api/images/${product.id}`
+    `${BACKEND_URL}/api/images/${product.id}`
   );
   const images = await imagesData.json();
 

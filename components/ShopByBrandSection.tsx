@@ -13,6 +13,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChevronRightIcon } from "lucide-react";
+import { BACKEND_URL } from "@/config";
 
 interface Brand {
   name: string;
@@ -27,7 +28,7 @@ const ShopByBrandSection: React.FC = () => {
   useEffect(() => {
     const fetchProductsAndGroupByBrand = async () => {
       try {
-        const data = await fetch("http://localhost:3002/api/products");
+        const data = await fetch(`${BACKEND_URL}/api/products`);
         const productsData = await data.json();
 
         // Group products by manufacturer/brand

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { BACKEND_URL } from "@/config";
 
 interface SubcategoryFormProps {
   categories: { id: string; name: string }[];
@@ -23,7 +24,7 @@ const SubcategoryForm: React.FC<SubcategoryFormProps> = ({
     }
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3002/api/subcategories", {
+      const res = await fetch(`${BACKEND_URL}/api/subcategories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, categoryId }),

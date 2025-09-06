@@ -3,7 +3,7 @@ import { DashboardSidebar } from "@/components";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import { convertCategoryNameToURLFriendly } from "../../../../../utils/categoryFormating";
-
+import { BACKEND_URL } from "@/config";
 const DashboardNewCategoryPage = () => {
   const [categoryInput, setCategoryInput] = useState({
     name: "",
@@ -19,7 +19,7 @@ const DashboardNewCategoryPage = () => {
         }),
       };
       // sending API request for creating new cateogry
-      fetch(`http://localhost:3002/api/categories`, requestOptions)
+      fetch(`${BACKEND_URL}/api/categories`, requestOptions)
         .then((response) => {
           if (response.status === 201) {
             return response.json();

@@ -23,6 +23,7 @@ import { signOut, useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import { useWishlistStore } from "@/app/_zustand/wishlistStore";
 import CategoryList from "./CategoryList";
+import { BACKEND_URL } from "@/config";
 
 const Header = () => {
   const { data: session, status } = useSession();
@@ -36,7 +37,7 @@ const Header = () => {
 
   // getting all wishlist items by user id
   const getWishlistByUserId = async (id: string) => {
-    const response = await fetch(`http://localhost:3002/api/wishlist/${id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/wishlist/${id}`, {
       cache: "no-store",
     });
     const wishlist = await response.json();
@@ -66,7 +67,7 @@ const Header = () => {
   // getting user by email so I can get his user id
   const getUserByEmail = async () => {
     if (session?.user?.email) {
-      fetch(`http://localhost:3002/api/users/email/${session?.user?.email}`, {
+      fetch(`${BACKEND_URL}/api/users/email/${session?.user?.email}`, {
         cache: "no-store",
       })
         .then((response) => response.json())

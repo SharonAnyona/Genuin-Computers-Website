@@ -8,7 +8,6 @@ import { fetchCategories } from "@/utils/fetchCategories";
 const CategoryList = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeIndex, setActiveIndex] = useState(1);
   const [openCategoryId, setOpenCategoryId] = useState<number | null>(null);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,7 +80,6 @@ const CategoryList = () => {
           className="flex gap-4 overflow-x-auto overflow-y-visible whitespace-nowrap scrollbar-hide"
         >
           {mappedCategories.map((item, index) => {
-            const isActive = index === activeIndex;
             const isOpen = openCategoryId === item.id;
 
             return (
@@ -94,13 +92,11 @@ const CategoryList = () => {
                   role="tab"
                   className={`py-2 px-2 text-base font-semibold border-b-2 transition-all duration-200  shadow-none transform-gpu
                     ${
-                      isActive || isOpen
+                      isOpen
                         ? "text-red-500 border-red-600 bg-white shadow-lg scale-105"
                         : "text-gray-700 border-transparent hover:text-red-600 hover:border-red-400 hover:bg-gray-100 hover:shadow-md hover:scale-105"
                     } flex items-center gap-2 cursor-pointer`}
                   style={{ minWidth: 120 }}
-                  onFocus={() => scheduleOpen(item.id)}
-                  onBlur={scheduleClose}
                   aria-expanded={
                     item.subcategories && item.subcategories.length > 0
                       ? isOpen
