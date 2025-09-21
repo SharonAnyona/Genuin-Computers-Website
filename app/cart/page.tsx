@@ -62,7 +62,7 @@ const CartPage = () => {
                                 href={`#`}
                                 className="font-medium text-gray-700 hover:text-gray-800"
                               >
-                                {product.title}
+                                {product.name}
                               </Link>
                             </h3>
                           </div>

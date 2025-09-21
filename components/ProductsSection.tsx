@@ -15,7 +15,7 @@ import { ChevronLeftIcon, ChevronRightIcon, SparklesIcon } from "lucide-react";
 import { BACKEND_URL } from "@/config";
 const ProductsSection = async () => {
   // sending API request for getting all products
-  const data = await fetch(`${BACKEND_URL}/api/products`);
+  const data = await fetch(`${BACKEND_URL}/store/api/products/`);
   const products = await data.json();
 
   return (

@@ -1,60 +1,145 @@
 "use client";
+
 import { CustomButton, SectionTitle } from "@/components";
 import { isValidEmailAddressFormat } from "@/lib/utils";
-import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
+import { BACKEND_URL } from "@/config";
+import { useUserStore } from "../_zustand/userStore";
+
+// Define types for API response
+interface LoginResponse {
+  status: number;
+  message: string;
+  token?: string;
+  entity?: {
+    id: number;
+    username: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    user_role: number;
+    is_verified: boolean;
+    token: string;
+    verified: boolean;
+    role: {
+      id: number;
+      name: string;
+    };
+  };
+  error?: string;
+}
+
+interface UserData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: {
+    id: number;
+    name: string;
+  };
+  // Add other user fields as needed
+}
 
 const LoginPage = () => {
+  const setUser = useUserStore((state) => state.setUser);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState("");
-  // const session = useSession();
-  const { data: session, status: sessionStatus } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-  useEffect(() => {
-    // if user has already logged in redirect to home page
-    if (sessionStatus === "authenticated") {
-      router.replace("/");
-    }
-  }, [sessionStatus, router]);
+  // Check for redirect URL from registration
+  const redirectUrl = searchParams.get("redirect") || "/";
 
-  const handleSubmit = async (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const email = e.target[0].value;
-    const password = e.target[1].value;
+    setError("");
 
-    if (!isValidEmailAddressFormat(email)) {
-      setError("Email is invalid");
-      toast.error("Email is invalid");
+    if (!isValidEmailAddressFormat(formData.email)) {
+      setError("Please enter a valid email address");
+      toast.error("Please enter a valid email address");
       return;
     }
 
-    if (!password || password.length < 8) {
-      setError("Password is invalid");
-      toast.error("Password is invalid");
+    if (!formData.password || formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      toast.error("Password must be at least 8 characters long");
       return;
     }
 
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
+    setIsLoading(true);
 
-    if (res?.error) {
-      setError("Invalid email or password");
-      toast.error("Invalid email or password");
-      if (res?.url) router.replace("/");
-    } else {
-      setError("");
-      toast.success("Successful login");
+    try {
+      // First, try to log in
+      const response = await fetch(`${BACKEND_URL}/auth/api/auth/login/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+
+  const data: LoginResponse = await response.json();
+  console.log('Backend login response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed. Please try again.");
+      }
+
+      // Check if user is verified
+      if (!data.entity?.is_verified) {
+        // Redirect to OTP verification page
+        toast.error("Please verify your email before logging in");
+        router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+        return;
+      }
+
+      // Save the token and user info from login response
+      if (data.token) {
+        localStorage.setItem("authToken", data.token);
+        if (data.entity) {
+          localStorage.setItem("user", JSON.stringify(data.entity));
+          setUser(data.entity);
+        }
+      }
+
+      toast.success("Login successful!");
+      router.push(redirectUrl);
+      
+    } catch (error: any) {
+      console.error("Login error:", error);
+      const errorMessage = error.message || "Invalid email or password. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (sessionStatus === "loading") {
-    return <h1>Loading...</h1>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
   return (
     <div className="bg-white">
@@ -69,6 +154,15 @@ const LoginPage = () => {
         <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-[480px]">
           <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
             <form className="space-y-6" onSubmit={handleSubmit}>
+              {error && (
+                <div className="rounded-md bg-red-50 p-4">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div>
                 <label
                   htmlFor="email"
@@ -83,6 +177,8 @@ const LoginPage = () => {
                     type="email"
                     autoComplete="email"
                     required
+                    value={formData.email}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
@@ -102,6 +198,8 @@ const LoginPage = () => {
                     type="password"
                     autoComplete="current-password"
                     required
+                    value={formData.password}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
@@ -125,10 +223,16 @@ const LoginPage = () => {
 
                 <div className="text-sm leading-6">
                   <a
-                    href="#"
-                    className="font-semibold text-black hover:text-black"
+                    href="/forgot-password"
+                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
                   >
                     Forgot password?
+                  </a>
+                  <a
+                    href="/register"
+                    className="text-sm font-semibold text-indigo-600 hover:text-indigo-500"
+                  >
+                    Don't have an account? Sign up
                   </a>
                 </div>
               </div>
@@ -141,6 +245,9 @@ const LoginPage = () => {
                   paddingY={1.5}
                   customWidth="full"
                   textSize="sm"
+                  title={isLoading ? "Signing in..." : "Sign in"}
+                  disabled={isLoading}
+                  containerStyles={`flex w-full justify-center rounded-md bg-black px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 />
               </div>
             </form>
@@ -164,7 +271,7 @@ const LoginPage = () => {
                 <button
                   className="flex w-full items-center border border-gray-300 justify-center gap-3 rounded-md bg-white px-3 py-1.5 text-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                   onClick={() => {
-                    signIn("google");
+                    // signIn("google");
                   }}
                 >
                   <FcGoogle />
@@ -176,7 +283,7 @@ const LoginPage = () => {
                 <button
                   className="flex w-full items-center justify-center gap-3 rounded-md bg-[#24292F] px-3 py-1.5 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#24292F]"
                   onClick={() => {
-                    signIn("github");
+                    // signIn("github");
                   }}
                 >
                   <svg

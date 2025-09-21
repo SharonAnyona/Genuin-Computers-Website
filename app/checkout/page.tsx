@@ -1,675 +1,423 @@
 "use client";
-import { SectionTitle } from "@/components";
-import { useProductStore } from "../_zustand/store";
-import Image from "next/image";
-import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
-import { isValidCardNumber, isValidCreditCardCVVOrCVC, isValidCreditCardExpirationDate, isValidEmailAddressFormat, isValidNameOrLastname } from "@/lib/utils";
-import { BACKEND_URL } from "@/config";
-const CheckoutPage = () => {
-  const [checkoutForm, setCheckoutForm] = useState({
-    name: "",
-    lastname: "",
-    phone: "",
-    email: "",
-    cardName: "",
-    cardNumber: "",
-    expirationDate: "",
-    cvc: "",
-    company: "",
-    adress: "",
-    apartment: "",
-    city: "",
-    country: "",
-    postalCode: "",
-    orderNotice: "",
-  });
-  const { products, total, clearCart } = useProductStore();
-  const router = useRouter();
 
-  const makePurchase = async () => {
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import { BACKEND_URL } from "@/config";
+import { useProductStore } from "../_zustand/store";
+import { useSession } from "next-auth/react";
+
+interface CheckoutForm {
+  name: string;
+  phone_number: string;
+  email: string;
+  address: string;
+  city: string;
+  order_notes: string;
+}
+
+const CITIES = [
+  'Nairobi',
+  'Coast',
+  'Central',
+  'Eastern',
+  'North Eastern',
+  'Nyanza',
+  'Rift Valley',
+  'Western'
+];
+
+export default function Checkout() {
+  const { products, clearCart, total, calculateTotals } = useProductStore();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'cod'>('mpesa');
+  const [mpesaPhone, setMpesaPhone] = useState('');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'completed' | 'failed'>('idle');
+
+  const [checkoutForm, setCheckoutForm] = useState<CheckoutForm>({
+    name: session?.user?.name || "",
+    phone_number: "",
+    email: session?.user?.email || "",
+    address: "",
+    city: "Nairobi", // Default to Nairobi
+    order_notes: "",
+  });
+
+  // Handle input and textarea changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setCheckoutForm({ ...checkoutForm, [e.target.name]: e.target.value });
+  };
+
+  // Handle select changes
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCheckoutForm({ ...checkoutForm, [e.target.name]: e.target.value });
+  };
+
+  const createOrder = async (paymentMethod: 'mpesa' | 'cod') => {
     if (
       checkoutForm.name.length > 0 &&
-      checkoutForm.lastname.length > 0 &&
-      checkoutForm.phone.length > 0 &&
+      checkoutForm.phone_number.length > 0 &&
       checkoutForm.email.length > 0 &&
-      checkoutForm.cardName.length > 0 &&
-      checkoutForm.expirationDate.length > 0 &&
-      checkoutForm.cvc.length > 0 &&
-      checkoutForm.company.length > 0 &&
-      checkoutForm.adress.length > 0 &&
-      checkoutForm.apartment.length > 0 &&
-      checkoutForm.city.length > 0 &&
-      checkoutForm.country.length > 0 &&
-      checkoutForm.postalCode.length > 0
+      checkoutForm.address.length > 0 &&
+      checkoutForm.city.length > 0
     ) {
-      if (!isValidNameOrLastname(checkoutForm.name)) {
-        toast.error("You entered invalid format for name");
-        return;
-      }
+      setIsProcessing(true);
+      try {
+        const items = products.map((product) => ({
+          product: product.id,
+          product_name: product.name,
+          quantity: product.amount,
+          price: product.price,
+        }));
 
-      if (!isValidNameOrLastname(checkoutForm.lastname)) {
-        toast.error("You entered invalid format for lastname");
-        return;
-      }
-
-      if (!isValidEmailAddressFormat(checkoutForm.email)) {
-        toast.error("You entered invalid format for email address");
-        return;
-      }
-
-      if (!isValidNameOrLastname(checkoutForm.cardName)) {
-        toast.error("You entered invalid format for card name");
-        return;
-      }
-
-      if (!isValidCardNumber(checkoutForm.cardNumber)) {
-        toast.error("You entered invalid format for credit card number");
-        return;
-      }
-
-      if (!isValidCreditCardExpirationDate(checkoutForm.expirationDate)) {
-        toast.error(
-          "You entered invalid format for credit card expiration date"
-        );
-        return;
-      }
-
-      if (!isValidCreditCardCVVOrCVC(checkoutForm.cvc)) {
-        toast.error("You entered invalid format for credit card CVC or CVV");
-        return;
-      }
-
-      // sending API request for creating a order
-      const response = fetch(`${BACKEND_URL}/api/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: checkoutForm.name,
-          lastname: checkoutForm.lastname,
-          phone: checkoutForm.phone,
-          email: checkoutForm.email,
-          company: checkoutForm.company,
-          adress: checkoutForm.adress,
-          apartment: checkoutForm.apartment,
-          postalCode: checkoutForm.postalCode,
-          status: "processing",
-          total: total,
-          city: checkoutForm.city,
-          country: checkoutForm.country,
-          orderNotice: checkoutForm.orderNotice,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          const orderId: string = data.id;
-          // for every product in the order we are calling addOrderProduct function that adds fields to the customer_order_product table
-          for (let i = 0; i < products.length; i++) {
-            let productId: string = products[i].id;
-            addOrderProduct(orderId, products[i].id, products[i].amount);
-          }
-        })
-        .then(() => {
-          setCheckoutForm({
-            name: "",
-            lastname: "",
-            phone: "",
-            email: "",
-            cardName: "",
-            cardNumber: "",
-            expirationDate: "",
-            cvc: "",
-            company: "",
-            adress: "",
-            apartment: "",
-            city: "",
-            country: "",
-            postalCode: "",
-            orderNotice: "",
-          });
-          clearCart();
-          toast.success("Order created successfuly");
-          setTimeout(() => {
-            router.push("/");
-          }, 1000);
+        // First create the order
+        const orderResponse = await fetch(`${BACKEND_URL}/store/api/orders/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            ...checkoutForm,
+            payment_method: paymentMethod,
+            items,
+          }),
         });
+
+        if (!orderResponse.ok) {
+          const errorData = await orderResponse.json();
+          throw new Error(errorData.error || "Failed to place order");
+        }
+
+        const orderData = await orderResponse.json();
+        setOrderId(orderData.order.id);
+
+        if (paymentMethod === 'mpesa') {
+          // Initiate M-Pesa payment - use mpesaPhone if provided, otherwise fall back to the form's phone_number
+          const phone = mpesaPhone || checkoutForm.phone_number;
+          const paymentResponse = await fetch(`${BACKEND_URL}/mpesa/initiate/`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              order_id: orderData.order.id,
+              phone_number: phone,
+            }),
+          });
+
+          const paymentData = await paymentResponse.json();
+          
+          if (!paymentResponse.ok) {
+            throw new Error(paymentData.error || "Failed to initiate M-Pesa payment");
+          }
+
+          setPaymentStatus('pending');
+          // Start polling for payment status
+          pollPaymentStatus(orderData.order.id);
+        } else {
+          // For cash on delivery
+          setPaymentStatus('completed');
+          completeOrder();
+        }
+      } catch (error: any) {
+        console.error("Order error:", error);
+        toast.error(error.message || "Error processing your order. Please try again.");
+        setPaymentStatus('failed');
+      } finally {
+        setIsProcessing(false);
+      }
     } else {
-      toast.error("You need to enter values in the input fields");
+      toast.error("Please fill all required fields");
     }
   };
 
-  const addOrderProduct = async (
-    orderId: string,
-    productId: string,
-    productQuantity: number
-  ) => {
-    // sending API POST request for the table customer_order_product that does many to many relatioship for order and product
-    const response = await fetch(`${BACKEND_URL}/api/order-product`, {
-      method: "POST", // or 'PUT'
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        customerOrderId: orderId,
-        productId: productId,
-        quantity: productQuantity,
-      }),
-    });
+  const pollPaymentStatus = async (orderId: number) => {
+    let attempts = 0;
+    const maxAttempts = 30; // 5 minutes max (10s * 30 = 300s)
+    
+    const checkStatus = async () => {
+      try {
+        // Use the correct endpoint for order payment status
+        const response = await fetch(`${BACKEND_URL}/mpesa/order/${orderId}/status/`);
+        const data = await response.json();
+
+        // Only treat 'success' as paid, all other statuses are failure
+        if (data.payment_status === 'success') {
+          setPaymentStatus('completed');
+          completeOrder();
+          return true;
+        } else if (
+          data.payment_status === 'failed' ||
+          data.payment_status === 'cancelled' ||
+          data.payment_status === 'no_payment' ||
+          data.payment_status === 'pending'
+        ) {
+          setPaymentStatus('failed');
+          toast.error('Payment not completed. Please try again.');
+          return false;
+        }
+
+        // If status is unknown, treat as failure
+        setPaymentStatus('failed');
+        toast.error('Unknown payment status. Please contact support.');
+        return false;
+      } catch (error) {
+        console.error('Error checking payment status:', error);
+        attempts++;
+        if (attempts < maxAttempts) {
+          setTimeout(checkStatus, 10000);
+        } else {
+          setPaymentStatus('failed');
+          toast.error('Error verifying payment. Please contact support.');
+        }
+      }
+    };
+
+  setTimeout(checkStatus, 15000); // Start polling after 15 seconds
   };
 
-  
+  const completeOrder = () => {
+    clearCart();
+    toast.success("Order placed successfully!");
+    setTimeout(() => {
+      router.push(`/orders/${orderId}`);
+    }, 2000);
+  };
 
-  useEffect(() => {
-    if (products.length === 0) {
-      toast.error("You don't have items in your cart");
-      router.push("/cart");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic form validation (phone_number handled separately for M-Pesa)
+    if (!checkoutForm.name || !checkoutForm.email || !checkoutForm.address) {
+      toast.error('Please fill in all required fields');
+      return;
     }
-  }, []);
+    
+    // Validate phone number format
+    const phoneRegex = /^(?:254|0)?[17]\d{8}$/;
+    
+    // For M-Pesa payments, validate the appropriate phone number
+    if (paymentMethod === 'mpesa') {
+      const phoneToValidate = mpesaPhone || checkoutForm.phone_number;
+      if (!phoneToValidate) {
+        toast.error('Please enter a phone number for M-Pesa payment');
+        return;
+      }
+      if (!phoneRegex.test(phoneToValidate)) {
+        toast.error('Please enter a valid M-Pesa phone number (e.g., 0712345678)');
+        return;
+      }
+    } else {
+      // For non-M-Pesa payments, validate the main phone number
+      if (!checkoutForm.phone_number) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
+      if (!phoneRegex.test(checkoutForm.phone_number)) {
+        toast.error('Please enter a valid Kenyan phone number (e.g., 0712345678)');
+        return;
+      }
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(checkoutForm.email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
+    // If all validations pass, create the order
+    try {
+      await createOrder(paymentMethod);
+    } catch (error) {
+      console.error('Error creating order:', error);
+      toast.error('Failed to process your order. Please try again.');
+    }
+  };
 
   return (
-    <div className="bg-white">
-      <SectionTitle title="Checkout" path="Home | Cart | Checkout" />
-      {/* Background color split screen for large screens */}
-      <div
-        className="hidden h-full w-1/2 bg-white lg:block"
-        aria-hidden="true"
-      />
-      <div
-        className="hidden h-full w-1/2 bg-gray-50 lg:block"
-        aria-hidden="true"
-      />
-
-      <main className="relative mx-auto grid max-w-screen-2xl grid-cols-1 gap-x-16 lg:grid-cols-2 lg:px-8 xl:gap-x-48">
-        <h1 className="sr-only">Order information</h1>
-
-        <section
-          aria-labelledby="summary-heading"
-          className="bg-gray-50 px-4 pb-10 pt-16 sm:px-6 lg:col-start-2 lg:row-start-1 lg:bg-transparent lg:px-0 lg:pb-16"
-        >
-          <div className="mx-auto max-w-lg lg:max-w-none">
-            <h2
-              id="summary-heading"
-              className="text-lg font-medium text-gray-900"
-            >
-              Order summary
-            </h2>
-
-            <ul
-              role="list"
-              className="divide-y divide-gray-200 text-sm font-medium text-gray-900"
-            >
-              {products.map((product) => (
-                <li
-                  key={product?.id}
-                  className="flex items-start space-x-4 py-6"
-                >
-                  <Image
-                    src={product?.image ? `/${product?.image}` : "/product_placeholder.jpg"}
-                    alt={product?.title}
-                    width={80}
-                    height={80}
-                    className="h-20 w-20 flex-none rounded-md object-cover object-center"
-                  />
-                  <div className="flex-auto space-y-1">
-                    <h3>{product?.title}</h3>
-                    <p className="text-gray-500">x{product?.amount}</p>
-                  </div>
-                  <p className="flex-none text-base font-medium">
-                    KSh {product?.price}
-                  </p>
-                  <p></p>
-                </li>
-              ))}
-            </ul>
-
-            <dl className="hidden space-y-6 border-t border-gray-200 pt-6 text-sm font-medium text-gray-900 lg:block">
-              <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Subtotal</dt>
-                <dd>KSh {total}</dd>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Shipping</dt>
-                <dd>KSh 5</dd>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <dt className="text-gray-600">Taxes</dt>
-                <dd>KSh {total / 5}</dd>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-                <dt className="text-base">Total</dt>
-                <dd className="text-base">
-                  KSh {total === 0 ? 0 : Math.round(total + total / 5 + 5)}
-                </dd>
-              </div>
-            </dl>
-          </div>
-        </section>
-
-        <form className="px-4 pt-16 sm:px-6 lg:col-start-1 lg:row-start-1 lg:px-0">
-          <div className="mx-auto max-w-lg lg:max-w-none">
-            <section aria-labelledby="contact-info-heading">
-              <h2
-                id="contact-info-heading"
-                className="text-lg font-medium text-gray-900"
+    <div className="container mx-auto p-4 max-w-4xl">
+      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Billing Details</h2>
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                value={checkoutForm.name}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                required
+                disabled={isProcessing}
+              />
+              <input
+                type="tel"
+                name="phone_number"
+                placeholder="Phone Number (e.g., 0712345678)"
+                value={checkoutForm.phone_number}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                required
+                disabled={isProcessing}
+                pattern="[0-9]{10,12}"
+                title="Please enter a valid Kenyan phone number (e.g., 0712345678)"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={checkoutForm.email}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                required
+                disabled={isProcessing}
+              />
+              <input
+                type="text"
+                name="address"
+                placeholder="Address"
+                value={checkoutForm.address}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                required
+                disabled={isProcessing}
+              />
+              <select
+                name="city"
+                value={checkoutForm.city}
+                onChange={handleSelectChange}
+                className="w-full p-2 border rounded bg-white"
+                required
+                disabled={isProcessing}
               >
-                Contact information
-              </h2>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="name-input"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Name
-                </label>
-                <div className="mt-1">
-                  <input
-                    value={checkoutForm.name}
-                    onChange={(e) =>
-                      setCheckoutForm({
-                        ...checkoutForm,
-                        name: e.target.value,
-                      })
-                    }
-                    type="text"
-                    id="name-input"
-                    name="name-input"
-                    autoComplete="text"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="lastname-input"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Lastname
-                </label>
-                <div className="mt-1">
-                  <input
-                    value={checkoutForm.lastname}
-                    onChange={(e) =>
-                      setCheckoutForm({
-                        ...checkoutForm,
-                        lastname: e.target.value,
-                      })
-                    }
-                    type="text"
-                    id="lastname-input"
-                    name="lastname-input"
-                    autoComplete="text"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="phone-input"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Phone number
-                </label>
-                <div className="mt-1">
-                  <input
-                    value={checkoutForm.phone}
-                    onChange={(e) =>
-                      setCheckoutForm({
-                        ...checkoutForm,
-                        phone: e.target.value,
-                      })
-                    }
-                    type="tel"
-                    id="phone-input"
-                    name="phone-input"
-                    autoComplete="text"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6">
-                <label
-                  htmlFor="email-address"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Email address
-                </label>
-                <div className="mt-1">
-                  <input
-                    value={checkoutForm.email}
-                    onChange={(e) =>
-                      setCheckoutForm({
-                        ...checkoutForm,
-                        email: e.target.value,
-                      })
-                    }
-                    type="email"
-                    id="email-address"
-                    name="email-address"
-                    autoComplete="email"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <section aria-labelledby="payment-heading" className="mt-10">
-              <h2
-                id="payment-heading"
-                className="text-lg font-medium text-gray-900"
-              >
-                Payment details
-              </h2>
-
-              <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6 sm:grid-cols-4">
-                <div className="col-span-3 sm:col-span-4">
-                  <label
-                    htmlFor="name-on-card"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Name on card
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="name-on-card"
-                      name="name-on-card"
-                      autoComplete="cc-name"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.cardName}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          cardName: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="col-span-3 sm:col-span-4">
-                  <label
-                    htmlFor="card-number"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Card number
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="card-number"
-                      name="card-number"
-                      autoComplete="cc-number"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.cardNumber}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          cardNumber: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="col-span-2 sm:col-span-3">
-                  <label
-                    htmlFor="expiration-date"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Expiration date (MM/YY)
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="expiration-date"
-                      id="expiration-date"
-                      autoComplete="cc-exp"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.expirationDate}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          expirationDate: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="cvc"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    CVC or CVV
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      name="cvc"
-                      id="cvc"
-                      autoComplete="csc"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.cvc}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          cvc: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section aria-labelledby="shipping-heading" className="mt-10">
-              <h2
-                id="shipping-heading"
-                className="text-lg font-medium text-gray-900"
-              >
-                Shipping address
-              </h2>
-
-              <div className="mt-6 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-3">
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="company"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Company
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="company"
-                      name="company"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.company}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          company: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="address"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Address
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="address"
-                      name="address"
-                      autoComplete="street-address"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.adress}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          adress: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="apartment"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Apartment, suite, etc.
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="apartment"
-                      name="apartment"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.apartment}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          apartment: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="city"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    City
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="city"
-                      name="city"
-                      autoComplete="address-level2"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.city}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          city: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="region"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Country
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="region"
-                      name="region"
-                      autoComplete="address-level1"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.country}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          country: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="postal-code"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Postal code
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      type="text"
-                      id="postal-code"
-                      name="postal-code"
-                      autoComplete="postal-code"
-                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm"
-                      value={checkoutForm.postalCode}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          postalCode: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="order-notice"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Order notice
-                  </label>
-                  <div className="mt-1">
-                    <textarea
-                      className="textarea textarea-bordered textarea-lg w-full"
-                      id="order-notice"
-                      name="order-notice"
-                      autoComplete="order-notice"
-                      value={checkoutForm.orderNotice}
-                      onChange={(e) =>
-                        setCheckoutForm({
-                          ...checkoutForm,
-                          orderNotice: e.target.value,
-                        })
-                      }
-                    ></textarea>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <div className="mt-10 border-t border-gray-200 pt-6 ml-0">
-              <button
-                type="button"
-                onClick={makePurchase}
-                className="w-full rounded-md border border-transparent bg-red-600 px-20 py-2 text-lg font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-gray-50 sm:order-last"
-              >
-                Pay Now
-              </button>
+                {CITIES.map((city) => (
+                  <option key={city} value={city}>
+                    {city}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                name="order_notes"
+                placeholder="Order Notes (Optional)"
+                value={checkoutForm.order_notes}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded"
+                rows={3}
+                disabled={isProcessing}
+              />
             </div>
           </div>
-        </form>
-      </main>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Your Order</h2>
+            <div className="bg-gray-50 p-4 rounded mb-6">
+              {products.map((product) => (
+                <div key={product.id} className="flex justify-between py-2 border-b">
+                  <div>
+                    {product.name} × {product.amount}
+                  </div>
+                  <div>KSh {(product.price * product.amount).toLocaleString()}</div>
+                </div>
+              ))}
+              <div className="flex justify-between font-semibold mt-4 pt-2 border-t">
+                <div>Total</div>
+                <div>KSh {total.toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-3">Payment Method</h3>
+              <div className="space-y-3">
+                <label className="flex items-center p-3 border rounded cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    className="h-4 w-4 text-blue-600"
+                    checked={paymentMethod === 'mpesa'}
+                    onChange={() => setPaymentMethod('mpesa')}
+                    disabled={isProcessing}
+                  />
+                  <span className="ml-2">M-Pesa Mobile Money</span>
+                </label>
+                
+                {paymentMethod === 'mpesa' && (
+                  <div className="ml-6 mt-2">
+                    <input
+                      type="tel"
+                      placeholder="M-Pesa Phone Number (e.g., 0712345678)"
+                      value={mpesaPhone}
+                      onChange={(e) => setMpesaPhone(e.target.value)}
+                      className="w-full p-2 border rounded"
+                      required
+                      disabled={isProcessing}
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                      You'll receive an M-Pesa payment request on this number
+                    </p>
+                  </div>
+                )}
+
+                <label className="flex items-center p-3 border rounded cursor-pointer hover:bg-gray-50">
+                  <input
+                    type="radio"
+                    className="h-4 w-4 text-blue-600"
+                    checked={paymentMethod === 'cod'}
+                    onChange={() => setPaymentMethod('cod')}
+                    disabled={isProcessing}
+                  />
+                  <span className="ml-2">Cash on Delivery</span>
+                </label>
+              </div>
+            </div>
+
+            {paymentStatus === 'pending' ? (
+              <div className="p-4 bg-yellow-50 text-yellow-800 rounded-md mb-4">
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-yellow-600 mr-2"></div>
+                  <span>Waiting for M-Pesa payment confirmation...</span>
+                </div>
+                <p className="text-sm mt-2">Please check your phone to complete the payment</p>
+              </div>
+            ) : paymentStatus === 'completed' ? (
+              <div className="p-4 bg-green-50 text-green-800 rounded-md mb-4">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Payment received! Redirecting to order details...</span>
+                </div>
+              </div>
+            ) : paymentStatus === 'failed' ? (
+              <div className="p-4 bg-red-50 text-red-800 rounded-md mb-4">
+                <div className="flex items-center">
+                  <svg className="h-5 w-5 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>Payment failed. Please try again.</span>
+                </div>
+              </div>
+            ) : null}
+
+            <button
+              type="submit"
+              disabled={isProcessing}
+              className={`w-full py-3 px-4 rounded-md mt-4 ${
+                isProcessing
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              }`}
+            >
+              {isProcessing ? 'Processing...' : 'Place Order'}
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   );
-};
-
-export default CheckoutPage;
+}

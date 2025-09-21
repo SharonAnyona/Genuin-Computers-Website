@@ -1,0 +1,63 @@
+<!-- Minimal Payment Widget -->
+<div class="payment-widget" data-order-id="{{ order.id }}">
+    {% if order.status == 'paid' %}
+        <div class="alert alert-success alert-sm">
+            <i class="fas fa-check-circle"></i> Paid
+            {% if order.mpesa_transaction.mpesa_code %}
+                <small class="d-block">{{ order.mpesa_transaction.mpesa_code }}</small>
+            {% endif %}
+        </div>
+    {% else %}
+        <button class="btn btn-success btn-sm" onclick="quickPay({{ order.id }}, '{{ order.phone_number }}')">
+            <i class="fas fa-mobile-alt"></i> Pay KSh {{ order.total_price|floatformat:0 }}
+        </button>
+        <div id="quick-status-{{ order.id }}" class="mt-1"></div>
+    {% endif %}
+</div>
+
+<script>
+function quickPay(orderId, phoneNumber) {
+    // Quick payment function for widget
+    const statusDiv = document.getElementById(`quick-status-${orderId}`);
+    
+    fetch('/mpesa/initiate/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            order_id: orderId,
+            phone_number: phoneNumber
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            statusDiv.innerHTML = `
+                <small class="text-info">
+                    <i class="fas fa-spinner fa-spin"></i> Check your phone...
+                </small>
+            `;
+            
+            // Simple status check after 10 seconds
+            setTimeout(() => {
+                location.reload();
+            }, 10000);
+        } else {
+            statusDiv.innerHTML = `
+                <small class="text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> ${data.error}
+                </small>
+            `;
+        }
+    })
+    .catch(error => {
+        statusDiv.innerHTML = `
+            <small class="text-danger">
+                <i class="fas fa-exclamation-triangle"></i> Network error
+            </small>
+        `;
+    });
+}
+</script>

@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Confirmation - #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="text-center mb-4">
+                <div class="mb-3">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                </div>
+                <h2 class="text-success">Order Placed Successfully!</h2>
+                <p class="lead">Thank you for your order. Your order number is <strong>#{{ order.id }}</strong></p>
+            </div>
+            
+            <!-- Order Details Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y g:i A" }}</p>
+                            <p><strong>Customer:</strong> {{ order.name }}</p>
+                            <p><strong>Email:</strong> {{ order.email }}</p>
+                            <p><strong>Phone:</strong> {{ order.phone_number }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Delivery Address:</strong></p>
+                            <address>
+                                {{ order.address }}<br>
+                                {{ order.city }}
+                            </address>
+                            {% if order.order_notes %}
+                            <p><strong>Notes:</strong> {{ order.order_notes }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Items -->
+            {% if order.items.all %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Items Ordered</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>{{ item.product_name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>KSh {{ item.price|floatformat:2 }}</td>
+                                    <td>KSh {{ item.total_price|floatformat:2 }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-primary">
+                                    <th colspan="3">Total Amount</th>
+                                    <th>KSh {{ order.total_price|floatformat:2 }}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Payment Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Payment</h5>
+                </div>
+                <div class="card-body">
+                    {% include 'mpesa/payment_button.html' %}
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">What's Next?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-credit-card text-primary"></i> Payment</h6>
+                            <p class="small">Complete your payment using the M-Pesa button above. You'll receive a confirmation once payment is processed.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-truck text-primary"></i> Delivery</h6>
+                            <p class="small">Once payment is confirmed, we'll process your order and arrange delivery to your specified address.</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-envelope text-primary"></i> Updates</h6>
+                            <p class="small">You'll receive email updates about your order status and delivery information.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-headset text-primary"></i> Support</h6>
+                            <p class="small">Need help? Contact our support team at <a href="mailto:support@sbckenya.com">support@sbckenya.com</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="text-center mt-4">
+                <a href="{% url 'store:product_list' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-shopping-cart"></i> Continue Shopping
+                </a>
+                <a href="/mpesa/order/{{ order.id }}/payment/" class="btn btn-primary">
+                    <i class="fas fa-receipt"></i> View Payment Page
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/payment.js' %}"></script>
+{% endblock %}

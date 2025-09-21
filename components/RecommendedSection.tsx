@@ -1,11 +1,11 @@
 // *********************
-// Role of the component: Recommended for You section with personalized layout
+// Role of the component: Recommended for You section driven by backend API
 // Name of the component: RecommendedSection.tsx
 // Developer: sharon anyona
-// Version: 1.0
+// Version: 1.2
 // Component call: <RecommendedSection />
 // Input parameters: none
-// Output: Personalized product recommendations with smart layout
+// Output: Displays recommended products as returned by backend
 // *********************
 
 "use client";
@@ -22,6 +22,21 @@ import { useProductStore } from "@/app/_zustand/store";
 import toast from "react-hot-toast";
 import { BACKEND_URL } from "@/config";
 
+interface ProductImage {
+  id: number;
+  src: string;
+  alt: string;
+}
+
+interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  price: string; // comes as string from backend
+  brand: string;
+  images: ProductImage[];
+}
+
 const RecommendedSection: React.FC = () => {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,39 +45,25 @@ const RecommendedSection: React.FC = () => {
   const handleAddToCart = (product: Product) => {
     addToCart({
       id: product.id,
-      title: product.title,
-      price: product.price,
-      image: product.mainImage,
+      title: product.name,
+      price: parseFloat(product.price),
+      image: product.images[0]?.src || "/product_placeholder.jpg",
       amount: 1,
     });
     calculateTotals();
-    toast.success(`${product.title} added to cart!`);
+    toast.success(`${product.name} added to cart!`);
   };
 
   useEffect(() => {
     const fetchRecommendedProducts = async () => {
       try {
-        const data = await fetch(`${BACKEND_URL}/api/products`, {
+        const res = await fetch(`${BACKEND_URL}/store/api/products/`, {
           cache: "no-store",
         });
-        const productsData = await data.json();
+        if (!res.ok) throw new Error("Failed to fetch recommended products");
 
-        // Simple recommendation logic: high-rated products with good stock
-        let recommended = productsData
-          .filter(
-            (product: Product) => product.rating >= 4 && product.inStock > 0
-          )
-          .sort((a: Product, b: Product) => b.rating - a.rating)
-          .slice(0, 8);
-
-        // Fallback: if no items matched, show a few available products
-        if (!recommended || recommended.length === 0) {
-          recommended = productsData
-            .filter((p: Product) => p.inStock > 0)
-            .slice(0, 8);
-        }
-
-        setRecommendedProducts(recommended);
+        const data: Product[] = await res.json();
+        setRecommendedProducts(data); // directly backend format
       } catch (error) {
         console.error("Error fetching recommended products:", error);
         setRecommendedProducts([]);
@@ -82,11 +83,11 @@ const RecommendedSection: React.FC = () => {
     );
   }
 
-  if (!recommendedProducts || recommendedProducts.length === 0) {
+  if (!recommendedProducts.length) {
     return (
       <section className="w-full mb-12">
-        <div className="flex bg-red-600 rounded-t-md items-center justify-between mb-0 px-4 sm:px-6 lg:px-8 py-3 shadow-md">
-          <h2 className="text-2xl md:text-2xl font-bold text-white flex items-center gap-3">
+        <div className="flex bg-red-600 rounded-t-md items-center justify-between px-4 sm:px-6 lg:px-8 py-3 shadow-md">
+          <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <UserIcon size={24} className="text-red-200" />
             Recommended for You
           </h2>
@@ -103,26 +104,23 @@ const RecommendedSection: React.FC = () => {
   return (
     <section className="w-full mb-12">
       {/* Title Row */}
-      <div className="flex bg-red-600 rounded-t-md items-center justify-between mb-0 px-4 sm:px-6 lg:px-8 py-3 shadow-md">
-        <h2 className="text-2xl md:text-2xl font-bold text-white flex items-center gap-3">
+      <div className="flex bg-red-600 rounded-t-md items-center justify-between px-4 sm:px-6 lg:px-8 py-3 shadow-md">
+        <h2 className="text-2xl font-bold text-white flex items-center gap-3">
           <UserIcon size={24} className="text-red-200" />
           Recommended for You
         </h2>
         <Link
           href="/recommended"
-          className="group flex items-center gap-2 text-white hover:text-gray-200 font-medium transition-colors duration-200"
+          className="group flex items-center gap-2 text-white hover:text-gray-200 font-medium transition-colors"
         >
           <span>View All</span>
-          <ChevronRightIcon
-            size={16}
-            className="group-hover:translate-x-1 transition-transform duration-200"
-          />
+          <ChevronRightIcon size={16} className="group-hover:translate-x-1" />
         </Link>
       </div>
 
       {/* Content Area */}
       <div className="bg-white rounded-b-md shadow-lg p-6">
-        {/* Recommendation Reasons */}
+        {/* Recommendation Labels */}
         <div className="flex flex-wrap gap-3 mb-6">
           <span className="inline-flex items-center gap-2 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
             <TrendingUpIcon size={14} />
@@ -143,9 +141,9 @@ const RecommendedSection: React.FC = () => {
           {recommendedProducts.map((product, index) => (
             <div
               key={product.id}
-              className="group bg-white rounded-xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all duration-300 overflow-hidden relative"
+              className="group bg-white rounded-xl border border-gray-200 hover:border-red-300 hover:shadow-xl transition-all overflow-hidden relative"
             >
-              {/* Recommendation Badge */}
+              {/* Badge for #1 pick */}
               {index === 0 && (
                 <div className="absolute top-3 left-3 z-10">
                   <span className="bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
@@ -159,90 +157,36 @@ const RecommendedSection: React.FC = () => {
                 <div className="relative mb-4 aspect-square overflow-hidden rounded-xl bg-white">
                   <img
                     src={
-                      product.mainImage
-                        ? `/${product.mainImage}`
+                      product.images.length > 0
+                        ? product.images[0].src
                         : "/product_placeholder.jpg"
                     }
-                    alt={product.title}
-                    className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500"
+                    alt={product.name}
+                    className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform"
                   />
                 </div>
 
                 {/* Product Info */}
                 <div className="space-y-2">
-                  {/* Rating */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className={`w-4 h-4 ${
-                            i < (product.rating || 0)
-                              ? "text-yellow-400 fill-current"
-                              : "text-gray-300 fill-current"
-                          }`}
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                        </svg>
-                      ))}
-                      <span className="text-xs text-gray-500 ml-1">
-                        ({product.rating})
-                      </span>
-                    </div>
-                    <span className="text-xs text-red-600 font-medium">
-                      Recommended
-                    </span>
-                  </div>
-
-                  <h3 className="font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-200 line-clamp-2 leading-tight">
-                    {product.title}
+                  <h3 className="font-semibold text-gray-900 group-hover:text-red-600 line-clamp-2 leading-tight">
+                    {product.name}
                   </h3>
-
                   <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-red-600">
-                          KSh {product.price.toFixed(2)}
-                        </span>
-                        {product.oldPrice && (
-                          <span className="text-sm text-gray-500 line-through">
-                            KSh {product.oldPrice.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                      {product.oldPrice && (
-                        <span className="text-xs text-green-600 font-medium">
-                          Save KSh{" "}
-                          {(product.oldPrice - product.price).toFixed(2)}
-                        </span>
-                      )}
-                    </div>
+                    <span className="text-lg font-bold text-red-600">
+                      KSh {parseFloat(product.price).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </Link>
 
-              {/* Add to Cart Button */}
+              {/* Add to Cart */}
               <div className="px-4 pb-4">
                 <button
                   onClick={() => handleAddToCart(product)}
-                  className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
+                  className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-all transform hover:scale-105 shadow-md"
                 >
                   Add to Cart
                 </button>
-              </div>
-
-              {/* Recommendation Reason */}
-              <div className="absolute bottom-0 left-0 right-0 bg-red-600/10 p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <p className="text-xs text-red-700 font-medium text-center">
-                  {index === 0
-                    ? "Most popular in your category"
-                    : index === 1
-                    ? "Highly rated by customers"
-                    : index === 2
-                    ? "Great value for money"
-                    : "Frequently bought together"}
-                </p>
               </div>
             </div>
           ))}
@@ -252,7 +196,7 @@ const RecommendedSection: React.FC = () => {
         <div className="text-center mt-8">
           <Link
             href="/recommended"
-            className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-all duration-200 transform hover:scale-105"
+            className="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-all transform hover:scale-105"
           >
             <span>Discover More Recommendations</span>
             <ChevronRightIcon size={16} />

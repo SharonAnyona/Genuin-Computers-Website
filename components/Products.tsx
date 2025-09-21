@@ -59,7 +59,7 @@ const Products = ({ slug }: any) => {
       try {
         // sending API request with filtering, sorting and pagination for getting all products
         const response = await fetch(
-          `${BACKEND_URL}/api/products?filters[price][$lte]=${
+          `${BACKEND_URL}/store/api/products/?filters[price][$lte]=${
             slug?.searchParams?.price || 300000
           }&filters[rating][$gte]=${
             Number(slug?.searchParams?.rating) || 0

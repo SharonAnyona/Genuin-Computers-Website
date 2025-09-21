@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBC Kenya - Standalone Frontend</title>
+    <!-- Add this CSP meta tag to allow ngrok connections -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://*.ngrok-free.app https://*.ngrok.io https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; img-src 'self' data: https://*.ngrok-free.app https://*.ngrok.io; font-src 'self' https://cdnjs.cloudflare.com;">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+        }
+        
+        .product-card {
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image {
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .price {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+        
+        .cart-badge {
+            font-size: 0.7rem;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+        }
+        
+        .payment-step {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#" onclick="showPage('products')">
+                <i class="fas fa-store"></i> SBC Kenya
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('products')">
+                            <i class="fas fa-home"></i> Products
+                        </a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="#" onclick="showPage('cart')">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge" id="cart-count">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showPage('orders')">
+                            <i class="fas fa-list"></i> Orders
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Authentication Section -->
+<div class="container mt-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body py-2">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">
+                                    <i class="fas fa-key"></i>
+                                </span>
+                                <input type="password" class="form-control" id="auth-token" 
+                                       placeholder="Enter your authentication token">
+                                <button class="btn btn-primary" type="button" onclick="setAuthToken()">
+                                    Set Token
+                                </button>
+                            </div>
+                        </div>
+                                                <div class="col-md-4">
+                            <span>Status: <span id="auth-status" class="badge bg-danger">Not Authenticated</span></span>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="clearAuthToken()">
+                                <i class="fas fa-sign-out-alt"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Notification Container -->
+
+    <!-- Main Content -->
+    <div class="container my-4">
+        <!-- Products Page -->
+        <div id="products-page" class="page">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Our Products</h2>
+                    <p class="text-muted">Discover our range of quality products</p>
+                </div>
+                <div>
+                    <input type="text" class="form-control" id="search-input" placeholder="Search products..." onkeyup="searchProducts()">
+                </div>
+            </div>
+            
+            <div id="products-grid" class="row">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Cart Page -->
+        <div id="cart-page" class="page" style="display: none;">
+            <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
+            <div id="cart-items">
+                <!-- Cart items will be loaded here -->
+            </div>
+            <div id="cart-total" class="text-end mt-3">
+                <!-- Cart total will be shown here -->
+            </div>
+            <div class="text-end mt-3">
+                <button class="btn btn-success btn-lg" onclick="showCheckout()" id="checkout-btn" disabled>
+                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                </button>
+            </div>
+        </div>
+
+        <!-- Orders Page -->
+        <div id="orders-page" class="page" style="display: none;">
+            <h2><i class="fas fa-list"></i> My Orders</h2>
+            <div id="orders-list">
+                <!-- Orders will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Checkout Modal -->
+        <div class="modal fade" id="checkoutModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Checkout</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="checkout-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="checkout-name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number *</label>
+                                        <input type="tel" class="form-control" id="checkout-phone" placeholder="0712345678" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="checkout-email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Delivery Address *</label>
+                                <textarea class="form-control" id="checkout-address" rows="3" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">City/Region *</label>
+                                <select class="form-control" id="checkout-city" required>
+                                    <option value="">Select City</option>
+                                    <option value="Nairobi">Nairobi</option>
+                                    <option value="Coast">Coast</option>
+                                    <option value="Western">Western</option>
+                                    <option value="Mt Kenya">Mt Kenya</option>
+                                    <option value="Southern">Southern</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Order Notes (Optional)</label>
+                                <textarea class="form-control" id="checkout-notes" rows="2"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="placeOrder()">Place Order</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Modal -->
+        <div class="modal fade" id="paymentModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Complete Payment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="payment-content">
+                        <!-- Payment content will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Configuration - UPDATE THIS WITH YOUR NGROK URL
+    const API_BASE_URL = 'https://a6e833a97fb1.ngrok-free.app'; // Replace with your ngrok URL
+    
+    // Global variables
+    let currentPage = 'products';
+    let products = [];
+    let cart = [];
+    let orders = [];
+    let authToken = localStorage.getItem('auth_token') || '';
+
+    // Initialize app
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeAuth();
+        loadProducts();
+        loadCart();
+        updateCartCount();
+    });
+
+    // Initialize authentication status
+    function initializeAuth() {
+        const tokenInput = document.getElementById('auth-token');
+        const statusElement = document.getElementById('auth-status');
+        
+        if (authToken) {
+            tokenInput.value = authToken;
+            statusElement.textContent = 'Authenticated';
+            statusElement.className = 'badge bg-success';
+        } else {
+            statusElement.textContent = 'Not Authenticated';
+            statusElement.className = 'badge bg-danger';
+        }
+    }
+
+    // Function to set auth token
+    function setAuthToken() {
+        const tokenInput = document.getElementById('auth-token');
+        const statusElement = document.getElementById('auth-status');
+        
+        authToken = tokenInput.value.trim();
+        
+        if (authToken) {
+            localStorage.setItem('auth_token', authToken);
+            statusElement.textContent = 'Authenticated';
+            statusElement.className = 'badge bg-success';
+            showNotification('success', 'Authentication token set successfully!');
+            
+            // Reload data with auth
+            loadProducts();
+            loadCart();
+        } else {
+            showNotification('error', 'Please enter a valid token');
+        }
+    }
+
+    // Function to clear auth token
+    function clearAuthToken() {
+        authToken = '';
+        localStorage.removeItem('auth_token');
+        document.getElementById('auth-token').value = '';
+        document.getElementById('auth-status').textContent = 'Not Authenticated';
+        document.getElementById('auth-status').className = 'badge bg-danger';
+        
+        // Clear cart and products
+        cart = [];
+        products = [];
+        displayCart();
+        updateCartCount();
+        document.getElementById('products-grid').innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                <h4>Authentication Required</h4>
+                <p class="text-muted">Please set your authentication token to continue.</p>
+            </div>
+        `;
+        
+        showNotification('info', 'Authentication token cleared');
+    }
+
+    // API Helper function with token authentication
+    async function apiCall(endpoint, options = {}) {
+        try {
+            console.log(`Making API call to: ${API_BASE_URL}${endpoint}`);
+            
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+                ...options.headers
+            };
+            
+            // Add auth token if available
+            if (authToken) {
+                headers['Authorization'] = `Token ${authToken}`;
+            }
+            
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                headers,
+                ...options
+            });
+            
+            console.log(`Response status: ${response.status}`);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`API Error ${response.status}:`, errorText);
+                
+                if (response.status === 401) {
+                    document.getElementById('auth-status').textContent = 'Invalid Token';
+                    document.getElementById('auth-status').className = 'badge bg-danger';
+                    showNotification('error', 'Authentication failed. Please check your token.');
+                } else if (response.status === 403) {
+                    showNotification('error', 'Access forbidden. Check your permissions.');
+                }
+                
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const responseText = await response.text();
+                console.error('Non-JSON response received:', responseText.substring(0, 200));
+                throw new Error('Server returned non-JSON response');
+            }
+            
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('API call failed:', error);
+            
+            if (error instanceof SyntaxError && error.message.includes('Unexpected token')) {
+                showNotification('error', 'Server returned HTML instead of JSON. Check API configuration.');
+            } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                showNotification('error', 'Network error. Please check your internet connection.');
+            } else {
+                showNotification('error', `API Error: ${error.message}`);
+            }
+            throw error;
+        }
+    }
+
+    // Page navigation
+    function showPage(page) {
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.getElementById(`${page}-page`).style.display = 'block';
+        currentPage = page;
+        
+        if (page === 'cart') {
+            loadCart();
+        } else if (page === 'orders') {
+            loadOrders();
+        }
+    }
+
+    // Load products
+    async function loadProducts() {
+        if (!authToken) {
+            document.getElementById('products-grid').innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                    <h4>Authentication Required</h4>
+                    <p class="text-muted">Please set your authentication token to view products.</p>
+                </div>
+            `;
+            return;
+        }
+
+        try {
+            const data = await apiCall('/store/api/products/');
+            products = data.results || data;
+            displayProducts(products);
+        } catch (error) {
+            document.getElementById('products-grid').innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+                    <h4>Failed to load products</h4>
+                    <p class="text-muted">Error: ${error.message}</p>
+                    <button class="btn btn-primary" onclick="loadProducts()">Retry</button>
+                </div>
+            `;
+        }
+    }
+
+// Update the displayProducts function to include a "Buy Now" button
+function displayProducts(productsToShow) {
+    const grid = document.getElementById('products-grid');
+    
+    if (productsToShow.length === 0) {
+        grid.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                <h4>No products found</h4>
+                <p class="text-muted">Try adjusting your search.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    grid.innerHTML = productsToShow.map(product => `
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card product-card">
+                <div class="position-relative">
+                    ${product.images && product.images.length > 0 
+                        ? `<img src="${product.images[0].src}" class="card-img-top product-image" alt="${product.name}">`
+                        : `<div class="card-img-top product-image bg-light d-flex align-items-center justify-content-center">
+                             <i class="fas fa-image fa-3x text-muted"></i>
+                           </div>`
+                    }
+                    ${product.status === 'Coming soon' 
+                        ? '<span class="position-absolute top-0 end-0 m-2 badge bg-warning">Coming Soon</span>'
+                        : ''
+                    }
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">${product.name}</h5>
+                    <p class="card-text text-muted flex-grow-1">${product.description.substring(0, 100)}...</p>
+                    <div class="mb-3">
+                        ${product.brand ? `<small class="text-muted"><i class="fas fa-tag"></i> ${product.brand}</small><br>` : ''}
+                        ${product.quantity ? `<small class="text-muted"><i class="fas fa-box"></i> ${product.quantity}</small>` : ''}
+                    </div>
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="price">KSh ${parseFloat(product.price).toFixed(2)}</span>
+                        </div>
+                        ${product.status === 'Available' 
+                            ? `<div class="btn-group w-100" role="group">
+                                 <button class="btn btn-outline-primary btn-sm" onclick="addToCart(${product.id})" ${!authToken ? 'disabled' : ''}>
+                                     <i class="fas fa-cart-plus"></i> Cart
+                                 </button>
+                                 <button class="btn btn-success btn-sm" onclick="buyNow(${product.id})" ${!authToken ? 'disabled' : ''}>
+                                     <i class="fas fa-bolt"></i> Buy Now
+                                 </button>
+                               </div>`
+                            : `<button class="btn btn-secondary btn-sm w-100" disabled>
+                                 <i class="fas fa-clock"></i> Coming Soon
+                               </button>`
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+
+    // Search products
+    function searchProducts() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const filtered = products.filter(product => 
+            product.name.toLowerCase().includes(query) ||
+            product.description.toLowerCase().includes(query)
+        );
+        displayProducts(filtered);
+    }
+// Buy Now function - skip cart and go straight to checkout
+async function buyNow(productId, quantity = 1) {
+    if (!authToken) {
+        showNotification('error', 'Please authenticate first to make a purchase');
+        return;
+    }
+
+    try {
+        // Get product details
+        const product = products.find(p => p.id === productId);
+        if (!product) {
+            showNotification('error', 'Product not found');
+            return;
+        }
+
+        // Create a temporary cart item for checkout
+        const tempCartItem = {
+            id: 'temp-' + productId,
+            product: product,
+            quantity: quantity,
+            total_price: parseFloat(product.price) * quantity
+        };
+
+        // Set temporary cart for checkout
+        cart = [tempCartItem];
+        
+        // Show checkout modal directly
+        showBuyNowCheckout(product, quantity);
+        
+    } catch (error) {
+        showNotification('error', 'Failed to initiate purchase');
+        console.error('Buy now error:', error);
+    }
+}
+
+// Show Buy Now checkout modal
+function showBuyNowCheckout(product, quantity) {
+    const total = parseFloat(product.price) * quantity;
+    
+    // Update checkout modal title
+    document.querySelector('#checkoutModal .modal-title').textContent = 'Quick Purchase';
+    
+    // Add product summary to checkout modal
+    const modalBody = document.querySelector('#checkoutModal .modal-body');
+    
+    // Add product summary at the top
+    const productSummary = `
+        <div class="alert alert-info mb-4">
+            <h6><i class="fas fa-shopping-bag"></i> Purchase Summary</h6>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>${product.name}</strong><br>
+                    <small class="text-muted">Quantity: ${quantity}</small>
+                </div>
+                <div class="text-end">
+                    <strong class="text-success">KSh ${total.toFixed(2)}</strong>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Insert product summary before the form
+    const existingSummary = modalBody.querySelector('.alert-info');
+    if (existingSummary) {
+        existingSummary.remove();
+    }
+    modalBody.insertAdjacentHTML('afterbegin', productSummary);
+    
+    // Show the modal
+    const modal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+    modal.show();
+}
+
+// Update the placeOrder function to handle buy now
+async function placeOrder() {
+    const form = document.getElementById('checkout-form');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+    
+    // Prepare items data
+    const items = cart.map(item => ({
+        product: item.product.id,
+        product_name: item.product.name,
+        quantity: item.quantity,
+        price: parseFloat(item.product.price)
+    }));
+    
+    const orderData = {
+        name: document.getElementById('checkout-name').value,
+        phone_number: document.getElementById('checkout-phone').value,
+        email: document.getElementById('checkout-email').value,
+        address: document.getElementById('checkout-address').value,
+        city: document.getElementById('checkout-city').value,
+        order_notes: document.getElementById('checkout-notes').value,
+        items: items
+    };
+    
+    try {
+        const data = await apiCall('/store/api/orders/', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
+        
+        if (data.order) {
+            showNotification('success', 'Order placed successfully!');
+            
+            // Clear temporary cart
+            cart = [];
+            updateCartCount();
+            updateCartTotal();
+            displayCart();
+            
+            // Close checkout modal
+            bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
+            
+            // Show payment modal
+            showPaymentModal(data.order);
+        }
+    } catch (error) {
+        showNotification('error', 'Failed to place order. Please try again.');
+        console.error('Place order error:', error);
+    }
+}
+
+    // Add to cart
+    async function addToCart(productId, quantity = 1) {
+        if (!authToken) {
+            showNotification('error', 'Please authenticate first to add items to cart');
+            return;
+        }
+
+        try {
+            const data = await apiCall(`/store/api/cart/`, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    product: productId,
+                    quantity: quantity 
+                })
+            });
+            
+            if (data.message || data.cart_item) {
+                showNotification('success', 'Product added to cart!');
+                updateCartCount();
+                loadCart();
+            }
+        } catch (error) {
+            showNotification('error', 'Failed to add product to cart');
+            console.error('Add to cart error:', error);
+        }
+    }
+
+    // Load cart
+// Load cart
+    async function loadCart() {
+        if (!authToken) {
+            displayEmptyCart('Please authenticate to view your cart');
+            return;
+        }
+
+        try {
+            const data = await apiCall('/store/api/cart/');
+            console.log('Cart API Response:', data); // Add this debug line
+            cart = data.cart_items || [];
+            console.log('Processed cart array:', cart); // Add this debug line
+            displayCart();
+            updateCartTotal();
+        } catch (error) {
+            console.error('Load cart error:', error);
+            displayEmptyCart('Failed to load cart');
+        }
+    }
+
+
+    // Display empty cart
+    function displayEmptyCart(message) {
+        const cartContainer = document.getElementById('cart-items');
+        cartContainer.innerHTML = `
+            <div class="text-center py-5">
+                <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                <h4>Cart Empty</h4>
+                <p class="text-muted">${message}</p>
+                ${authToken ? '<button class="btn btn-primary" onclick="showPage(\'products\')">Shop Now</button>' : ''}
+            </div>
+        `;
+        document.getElementById('checkout-btn').disabled = true;
+    }
+
+    // Display cart
+    function displayCart() {
+        const cartContainer = document.getElementById('cart-items');
+        
+        if (cart.length === 0) {
+            cartContainer.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h4>Your cart is empty</h4>
+                    <p class="text-muted">Add some products to get started!</p>
+                    <button class="btn btn-primary" onclick="showPage('products')">Shop Now</button>
+                </div>
+            `;
+            document.getElementById('checkout-btn').disabled = true;
+            return;
+        }
+        
+        cartContainer.innerHTML = cart.map(item => `
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            ${item.product.images && item.product.images.length > 0 
+                                ? `<img src="${item.product.images[0].src}" class="img-fluid rounded" alt="${item.product.name}">`
+                                : `<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 80px;">
+                                     <i class="fas fa-image text-muted"></i>
+                                   </div>`
+                            }
+                        </div>
+                        <div class="col-md-4">
+                            <h6>${item.product.name}</h6>
+                            <small class="text-muted">KSh ${parseFloat(item.product.price).toFixed(2)} each</small>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary btn-sm" onclick="updateCartQuantity(${item.id}, -1)">-</button>
+                                <input type="number" class="form-control form-control-sm text-center" value="${item.quantity}" readonly>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="updateCartQuantity(${item.id}, 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <strong>KSh ${parseFloat(item.total_price).toFixed(2)}</strong>
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-outline-danger btn-sm" onclick="removeFromCart(${item.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+        
+        document.getElementById('checkout-btn').disabled = false;
+    }
+
+    // Update cart quantity
+    async function updateCartQuantity(itemId, change) {
+        try {
+            const item = cart.find(i => i.id === itemId);
+            if (item) {
+                const newQuantity = item.quantity + change;
+                if (newQuantity <= 0) {
+                    removeFromCart(itemId);
+                } else {
+                    const data = await apiCall(`/store/api/cart/${itemId}/`, {
+                        method: 'PATCH',
+                        body: JSON.stringify({ quantity: newQuantity })
+                    });
+                    
+                    // Update local cart
+                    item.quantity = newQuantity;
+                    item.total_price = item.product.price * item.quantity;
+                    displayCart();
+                    updateCartTotal();
+                    updateCartCount();
+                }
+            }
+        } catch (error) {
+            console.error('Update cart quantity error:', error);
+            showNotification('error', 'Failed to update cart');
+        }
+    }
+
+    // Remove from cart
+    async function removeFromCart(itemId) {
+        try {
+            await apiCall(`/store/api/cart/${itemId}/`, {
+                method: 'DELETE'
+            });
+            
+            cart = cart.filter(item => item.id !== itemId);
+            displayCart();
+            updateCartTotal();
+            updateCartCount();
+            showNotification('success', 'Item removed from cart');
+        } catch (error) {
+            console.error('Remove from cart error:', error);
+            showNotification('error', 'Failed to remove item from cart');
+        }
+    }
+
+    // Update cart count
+    function updateCartCount() {
+        const count = cart.reduce((total, item) => total + item.quantity, 0);
+        document.getElementById('cart-count').textContent = count;
+        document.getElementById('cart-count').style.display = count > 0 ? 'inline-block' : 'none';
+    }
+
+    // Update cart total
+    function updateCartTotal() {
+        const total = cart.reduce((sum, item) => sum + parseFloat(item.total_price), 0);
+        document.getElementById('cart-total').innerHTML = `
+            <h4>Total: <span class="text-success">KSh ${total.toFixed(2)}</span></h4>
+        `;
+    }
+
+    // Show checkout modal
+    function showCheckout() {
+        const modal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+        modal.show();
+    }
+
+    // Place order
+    async function placeOrder() {
+        const form = document.getElementById('checkout-form');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        
+        const orderData = {
+            name: document.getElementById('checkout-name').value,
+            phone_number: document.getElementById('checkout-phone').value,
+            email: document.getElementById('checkout-email').value,
+            address: document.getElementById('checkout-address').value,
+            city: document.getElementById('checkout-city').value,
+            order_notes: document.getElementById('checkout-notes').value,
+            items: cart.map(item => ({
+                product: item.product.id,
+                product_name: item.product.name,
+                quantity: item.quantity,
+                price: parseFloat(item.product.price)
+            }))
+        };
+        
+        try {
+            const data = await apiCall('/store/api/orders/', {
+                method: 'POST',
+                body: JSON.stringify(orderData)
+            });
+            
+            if (data.order) {
+                showNotification('success', 'Order placed successfully!');
+                cart = [];
+                updateCartCount();
+                updateCartTotal();
+                displayCart();
+                
+                // Close checkout modal
+                bootstrap.Modal.getInstance(document.getElementById('checkoutModal')).hide();
+                
+                // Show payment modal
+                showPaymentModal(data.order);
+            }
+        } catch (error) {
+            showNotification('error', 'Failed to place order. Please try again.');
+        }
+    }
+
+    // Show payment modal
+    function showPaymentModal(order) {
+        const paymentContent = document.getElementById('payment-content');
+        paymentContent.innerHTML = `
+            <div class="text-center mb-4">
+                <h4>Order #${order.id}</h4>
+                <p class="text-muted">Complete your payment to confirm the order</p>
+            </div>
+            
+            <div class="payment-step">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h5 class="mb-1">Pay with M-Pesa</h5>
+                        <p class="text-muted mb-0">Complete your payment using M-Pesa STK Push</p>
+                    </div>
+                </div>
+                
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-mobile-alt"></i> M-Pesa Phone Number
+                            </label>
+                            <input type="tel" class="form-control form-control-lg" 
+                                   id="payment-phone" placeholder="0712345678" 
+                                   value="${order.phone_number}" maxlength="12">
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <div class="mb-3">
+                            <span style="color: #00a651; font-weight: bold; font-size: 2rem;">M-PESA</span>
+                        </div>
+                        <button type="button" class="btn btn-success btn-lg" 
+                                onclick="initiatePayment(${order.id})">
+                            <i class="fas fa-mobile-alt"></i> Pay KSh ${parseFloat(order.total_price).toFixed(0)}
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="payment-status" class="mt-3"></div>
+            </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+        modal.show();
+    }
+
+    // Initiate payment
+    async function initiatePayment(orderId) {
+        const phone = document.getElementById('payment-phone').value;
+        const statusDiv = document.getElementById('payment-status');
+        
+        if (!phone || phone.length < 10) {
+            showNotification('error', 'Please enter a valid phone number');
+            return;
+        }
+        
+        statusDiv.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-spinner fa-spin"></i> Initiating payment...
+            </div>
+        `;
+        
+        try {
+            const data = await apiCall(`/mpesa/initiate/`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    order_id: orderId,
+                    phone_number: phone
+                })
+            });
+            
+            if (data.success) {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-mobile-alt"></i> Payment request sent to your phone!
+                        <br><small>Please enter your M-Pesa PIN to complete the payment.</small>
+                    </div>
+                `;
+                
+                // Check payment status
+                checkPaymentStatus(orderId);
+            } else {
+                statusDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Payment failed: ${data.message || 'Unknown error'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Payment failed. Please try again.
+                </div>
+            `;
+        }
+    }
+// Check payment status
+function checkPaymentStatus(orderId) {
+    let attempts = 0;
+    const maxAttempts = 40; // Check for 2 minutes (40 * 3 seconds)
+    
+    const checkInterval = setInterval(async () => {
+        attempts++;
+        
+        try {
+            const data = await apiCall(`/store/api/orders/${orderId}/`);
+            console.log(`Payment status check ${attempts}: Order status = ${data.status}`);
+            
+            if (data.status === 'paid') {
+                clearInterval(checkInterval);
+                document.getElementById('payment-status').innerHTML = `
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> Payment completed successfully!
+                        <br><small>Your order is being processed.</small>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                    showPage('orders');
+                    loadOrders();
+                }, 2000);
+            } else if (data.status === 'cancelled') {
+                // Payment was cancelled by user
+                clearInterval(checkInterval);
+                document.getElementById('payment-status').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-times-circle"></i> Payment was cancelled.
+                        <br><small>You cancelled the M-Pesa payment request.</small>
+                        <br><br>
+                        <button class="btn btn-primary btn-sm" onclick="retryPayment(${orderId})">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                `;
+            } else if (data.status === 'payment_failed') {
+                // Payment failed (insufficient balance, etc.)
+                clearInterval(checkInterval);
+                document.getElementById('payment-status').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Payment failed.
+                        <br><small>The payment could not be completed. Please try again.</small>
+                        <br><br>
+                        <button class="btn btn-primary btn-sm" onclick="retryPayment(${orderId})">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                `;
+            } else if (attempts >= maxAttempts) {
+                // Payment timeout
+                clearInterval(checkInterval);
+                document.getElementById('payment-status').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-clock"></i> Payment verification timeout.
+                        <br><small>If you completed the payment, it may take a few minutes to reflect.</small>
+                        <br><br>
+                        <button class="btn btn-primary btn-sm" onclick="retryPayment(${orderId})">
+                            <i class="fas fa-redo"></i> Try Again
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="checkOrderStatus(${orderId})">
+                            <i class="fas fa-search"></i> Check Status
+                        </button>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error checking payment status:', error);
+            
+            if (attempts >= maxAttempts) {
+                clearInterval(checkInterval);
+                document.getElementById('payment-status').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Unable to verify payment status.
+                        <br><br>
+                        <button class="btn btn-primary btn-sm" onclick="retryPayment(${orderId})">
+                            <i class="fas fa-redo"></i> Retry Payment
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }, 3000);
+}
+
+// Retry payment function
+async function retryPayment(orderId) {
+    const phone = document.getElementById('payment-phone').value;
+    
+    if (!phone) {
+        showNotification('error', 'Please enter your phone number');
+        return;
+    }
+    
+    // Reset the payment status display
+    document.getElementById('payment-status').innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin"></i> Retrying payment...
+        </div>
+    `;
+    
+    // Call initiate payment again
+    await initiatePayment(orderId);
+}
+// Check order status function
+async function checkOrderStatus(orderId) {
+    try {
+        const data = await apiCall(`/store/api/orders/${orderId}/`);
+        
+        let statusMessage = '';
+        let statusClass = '';
+        
+        switch(data.status) {
+            case 'paid':
+                statusMessage = 'Payment successful! Your order is being processed.';
+                statusClass = 'alert-success';
+                break;
+            case 'pending':
+                statusMessage = 'Payment is still pending. Please complete the M-Pesa transaction.';
+                statusClass = 'alert-warning';
+                break;
+            case 'failed':
+                statusMessage = 'Payment failed. You can try again.';
+                statusClass = 'alert-danger';
+                break;
+            default:
+                statusMessage = `Order status: ${data.status}`;
+                statusClass = 'alert-info';
+        }
+        
+        document.getElementById('payment-status').innerHTML = `
+            <div class="alert ${statusClass}">
+                <i class="fas fa-info-circle"></i> ${statusMessage}
+                <br><br>
+                ${data.status !== 'paid' ? `
+                    <button class="btn btn-primary btn-sm" onclick="retryPayment(${orderId})">
+                        <i class="fas fa-redo"></i> Try Payment Again
+                    </button>
+                ` : ''}
+            </div>
+        `;
+        
+        if (data.status === 'paid') {
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                showPage('orders');
+                loadOrders();
+            }, 2000);
+        }
+        
+    } catch (error) {
+        showNotification('error', 'Failed to check order status');
+    }
+}
+    // Load orders
+    async function loadOrders() {
+        if (!authToken) {
+            document.getElementById('orders-list').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-lock fa-3x text-muted mb-3"></i>
+                    <h4>Authentication Required</h4>
+                    <p class="text-muted">Please authenticate to view your orders.</p>
+                </div>
+            `;
+            return;
+        }
+
+        try {
+            const data = await apiCall('/store/api/orders/');
+            orders = data.orders || data.results || [];
+            displayOrders();
+        } catch (error) {
+            document.getElementById('orders-list').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-muted mb-3"></i>
+                    <h4>Failed to load orders</h4>
+                    <p class="text-muted">Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    // Display orders
+    function displayOrders() {
+        const container = document.getElementById('orders-list');
+        
+        if (orders.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                    <h4>No orders yet</h4>
+                    <p class="text-muted">Your orders will appear here once you make a purchase.</p>
+                    <button class="btn btn-primary" onclick="showPage('products')">Start Shopping</button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = orders.map(order => `
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Order #${order.id}</h6>
+                    <span class="badge bg-${getStatusColor(order.status)}">${order.status}</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Date:</strong> ${new Date(order.created_at).toLocaleDateString()}</p>
+                            <p class="mb-1"><strong>Total:</strong> KSh ${parseFloat(order.total_price).toFixed(2)}</p>
+                            <p class="mb-0"><strong>Items:</strong> ${order.items ? order.items.length : 0} item(s)</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Delivery:</strong> ${order.city}</p>
+                            <p class="mb-0"><strong>Phone:</strong> ${order.phone_number}</p>
+                        </div>
+                    </div>
+                    ${order.items && order.items.length > 0 ? `
+                        <hr>
+                        <h6>Items:</h6>
+                        ${order.items.map(item => `
+                            <div class="d-flex justify-content-between">
+                                <span>${item.product_name} x${item.quantity}</span>
+                                <span>KSh ${parseFloat(item.total_price || item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Get status color for badges
+    function getStatusColor(status) {
+        const colors = {
+            'pending': 'warning',
+            'paid': 'success',
+            'processing': 'info',
+            'on_transit': 'primary',
+            'delivered': 'success',
+            'cancelled': 'danger'
+        };
+        return colors[status] || 'secondary';
+    }
+
+    // Show notification
+    function showNotification(type, message, duration = 3000) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : type === 'info' ? 'info' : 'danger'} alert-dismissible fade show notification`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-triangle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after duration
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        document.body.removeChild(notification);
+                    }
+                }, 150);
+            }
+        }, duration);
+    }
+
+    // Connection status check
+    function checkConnection() {
+        if (!authToken) return;
+        
+        fetch(`${API_BASE_URL}/store/api/products/`, {
+            headers: {
+                'Authorization': `Token ${authToken}`,
+                'ngrok-skip-browser-warning': 'true'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                document.body.classList.remove('offline');
+            } else {
+                throw new Error('Connection failed');
+            }
+        })
+        .catch(() => {
+            document.body.classList.add('offline');
+            showNotification('error', 'Connection lost. Please check your internet connection.');
+        });
+    }
+
+    // Check connection every 30 seconds
+    setInterval(checkConnection, 30000);
+
+    // Initial connection check
+    setTimeout(checkConnection, 1000);
+</script>
+
+
+
+</body>
+</html>
+
+

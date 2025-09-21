@@ -2,29 +2,62 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import Link from "next/link";
-import { ChevronDownIcon } from "lucide-react";
 import { fetchCategories } from "@/utils/fetchCategories";
 
+// ---- Types ----
+interface SubCategory {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+type Category = {
+  id: number;
+  name: string;
+  slug: string;
+  subcategories?: Category[];
+};
+
+type CategoryResponse = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: Category[];
+};
+
+// ---- Component ----
 const CategoryList = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryResponse>({
+    count: 0,
+    next: null,
+    previous: null,
+    results: [],
+  });
+  
   const [loading, setLoading] = useState(true);
   const [openCategoryId, setOpenCategoryId] = useState<number | null>(null);
+
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+
 
   useEffect(() => {
     let ignore = false;
     setLoading(true);
+
+
     fetchCategories()
       .then((data) => {
         if (!ignore) setCategories(data);
       })
       .catch(() => {
-        if (!ignore) setCategories([]);
+        if (!ignore) setCategories({ count: 0, next: null, previous: null, results: [] });
       })
       .finally(() => {
         if (!ignore) setLoading(false);
       });
+
     return () => {
       ignore = true;
     };
@@ -58,15 +91,15 @@ const CategoryList = () => {
     );
   }
 
-  // ✅ Fix: Preserve category and subcategory IDs
-  const mappedCategories = categories.map((cat) => ({
+  // ✅ Map categories
+  const mappedCategories = categories.results.map((cat) => ({
     ...cat,
-    id: cat.id, // keep category id
+    id: cat.id,
     title: cat.name,
     href: cat.slug ? `/shop/${cat.slug}` : "#",
-    subcategories: (cat.subcategories || []).map((sub: any) => ({
+    subcategories: (cat.subcategories || []).map((sub) => ({
       ...sub,
-      id: sub.id, // keep subcategory id
+      id: sub.id,
       title: sub.name,
       href: sub.slug ? `/shop/${sub.slug}` : "#",
     })),
@@ -79,13 +112,15 @@ const CategoryList = () => {
           role="tablist"
           className="flex gap-4 overflow-x-auto overflow-y-visible whitespace-nowrap scrollbar-hide"
         >
-          {mappedCategories.map((item, index) => {
+          {mappedCategories.map((item) => {
             const isOpen = openCategoryId === item.id;
 
             return (
               <div
                 key={item.id}
                 className={`relative group ${isOpen ? "z-[100002]" : ""}`}
+                onMouseEnter={() => scheduleOpen(item.id)}
+                onMouseLeave={scheduleClose}
               >
                 <Link
                   href={item.href}
@@ -106,30 +141,26 @@ const CategoryList = () => {
                   <span>{item.title}</span>
                 </Link>
 
-                {/* Subcategories Dropdown - always visible for testing */}
                 {item.subcategories && item.subcategories.length > 0 && (
                   <div className="absolute top-full left-0 z-[100003] mt-1 w-64 bg-white border border-gray-200 rounded-b-lg shadow-2xl pointer-events-auto opacity-100 scale-100 transition-all duration-200">
                     <div className="p-4">
                       <div className="grid grid-cols-1 gap-2">
-                        {item.subcategories.map(
-                          (subcategory: any, subIndex: number) => (
-                            <Link
-                              key={subcategory.id ?? subIndex}
-                              href={subcategory.href}
-                              className="block px-3 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors duration-150 group"
-                            >
-                              <div className="flex items-center justify-between">
-                                <span className="group-hover:translate-x-1 transition-transform duration-150">
-                                  {subcategory.title}
-                                </span>
-                                <div className="w-2 h-2 bg-red-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-150"></div>
-                              </div>
-                            </Link>
-                          )
-                        )}
+                        {item.subcategories.map((subcategory, subIndex) => (
+                          <Link
+                            key={subcategory.id ?? subIndex}
+                            href={subcategory.href}
+                            className="block px-3 py-2 text-sm text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors duration-150 group"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="group-hover:translate-x-1 transition-transform duration-150">
+                                {subcategory.title}
+                              </span>
+                              <div className="w-2 h-2 bg-red-100 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-150"></div>
+                            </div>
+                          </Link>
+                        ))}
                       </div>
 
-                      {/* View All Link */}
                       <div className="mt-3 pt-3 border-t border-gray-100">
                         <Link
                           href={item.href}
@@ -145,9 +176,29 @@ const CategoryList = () => {
             );
           })}
         </div>
+
+        {/* ✅ Simple pagination controls */}
+        <div className="flex justify-center items-center gap-4 py-4">
+        {categories.previous && (
+          <button
+            onClick={() => fetchCategories(categories.previous!).then(setCategories)}
+            className="px-3 py-1 text-sm border rounded hover:bg-gray-100"
+          >
+            Previous
+          </button>
+        )}
+        {categories.next && (
+          <button
+            onClick={() => fetchCategories(categories.next!).then(setCategories)}
+            className="px-3 py-1 text-sm border rounded hover:bg-gray-100"
+          >
+            Next
+          </button>
+        )}
+      </div>
       </div>
     </nav>
   );
-};
+}
 
 export default CategoryList;

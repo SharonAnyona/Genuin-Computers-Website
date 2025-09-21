@@ -1,82 +1,148 @@
 "use client";
 import { CustomButton, SectionTitle } from "@/components";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import toast from "react-hot-toast";
+import { BACKEND_URL } from "@/config";
+
+// Define types for form data
+interface RegisterFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+  confirm_password: string;
+  phone_number?: string;
+  user_role?: number;
+}
+
+// Define API response type
+interface ApiResponse {
+  status: number;
+  message: string;
+  entity?: any;
+  error?: string;
+}
 
 const RegisterPage = () => {
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const { data: session, status: sessionStatus } = useSession();
+  const [formData, setFormData] = useState<RegisterFormData>({
+    first_name: "",
+    last_name: "",
+    email: "",
+    password: "",
+    confirm_password: "",
+    phone_number: "",
+    user_role: 4 // Default to customer role
+  });
 
-  useEffect(() => {
-    // chechking if user has already registered redirect to home page
-    if (sessionStatus === "authenticated") {
-      router.replace("/");
-    }
-  }, [sessionStatus, router]);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
     return emailRegex.test(email);
   };
-  const handleSubmit = async (e: any) => {
+
+  const validateForm = (): boolean => {
+    if (!formData.first_name || !formData.last_name) {
+      setError("Please enter your full name");
+      toast.error("Please enter your full name");
+      return false;
+    }
+
+    if (!isValidEmail(formData.email)) {
+      setError("Please enter a valid email address");
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+
+    if (!formData.password || formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      toast.error("Password must be at least 8 characters long");
+      return false;
+    }
+
+    if (formData.password !== formData.confirm_password) {
+      setError("Passwords do not match");
+      toast.error("Passwords do not match");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const email = e.target[2].value;
-    const password = e.target[3].value;
-    const confirmPassword = e.target[4].value;
-
-    if (!isValidEmail(email)) {
-      setError("Email is invalid");
-      toast.error("Email is invalid");
-      return;
-    }
-
-    if (!password || password.length < 8) {
-      setError("Password is invalid");
-      toast.error("Password is invalid");
-      return;
-    }
-
-    if (confirmPassword !== password) {
-      setError("Passwords are not equal");
-      toast.error("Passwords are not equal");
-      return;
-    }
+    setError("");
+    
+    if (!validateForm()) return;
+    
+    setIsLoading(true);
 
     try {
-      // sending API request for registering user
-      const res = await fetch("/api/register", {
+      // Generate a username from email (first part before @)
+      const username = formData.email.split('@')[0];
+      
+      const response = await fetch(`${BACKEND_URL}/auth/api/auth/register/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email,
-          password,
-        }),
+          ...formData, // Include all form data (including confirm_password)
+          username: username,
+          user_role: 4 // Default to customer role
+        })
       });
 
-      if (res.status === 400) {
-        toast.error("This email is already registered");
-        setError("The email already in use");
+      const data: ApiResponse = await response.json();
+
+      // Handle different status codes
+      if (response.status === 409) {
+        // Email already exists
+        throw new Error(data.message || "This email is already registered. Please use a different email or login.");
+      } else if (response.status === 400) {
+        // Validation errors
+        const errorMessages = data.entity ? Object.values(data.entity).flat().join(' ') : data.message;
+        throw new Error(errorMessages || "Please check your input and try again.");
+      } else if (response.status >= 500) {
+        // Server error
+        throw new Error("An unexpected error occurred. Please try again later.");
+      } else if (response.status !== 201) {
+        // Any other error
+        throw new Error(data.message || "Registration failed. Please try again.");
       }
-      if (res.status === 200) {
-        setError("");
-        toast.success("Registration successful");
-        router.push("/login");
-      }
-    } catch (error) {
-      toast.error("Error, try again");
-      setError("Error, try again");
-      console.log(error);
+
+      // If we get here, registration was successful (201 Created)
+      toast.success("Registration successful! Please check your email for OTP verification.");
+      
+      // Redirect to OTP verification page with email as query param
+      router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
+      
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      const errorMessage = error.message || "Registration failed. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (sessionStatus === "loading") {
-    return <h1>Loading...</h1>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      </div>
+    );
   }
   return (
     <div className="bg-white">
@@ -90,20 +156,40 @@ const RegisterPage = () => {
 
         <div className="mt-5 sm:mx-auto sm:w-full sm:max-w-[480px]">
           <div className="bg-white px-6 py-12 shadow sm:rounded-lg sm:px-12">
+            {error && (
+              <div className="rounded-md bg-red-50 p-4">
+                <div className="flex">
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                  </div>
+                </div>
+              </div>
+            )}
+            <p className="mt-4 text-center text-sm text-gray-500">
+              Already have an account?{" "}
+              <a
+                href="/login"
+                className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+              >
+                Sign in
+              </a>
+            </p>
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label
-                  htmlFor="name"
+                  htmlFor="first_name"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Name
+                  First Name
                 </label>
                 <div className="mt-2">
                   <input
-                    id="name"
-                    name="name"
+                    id="first_name"
+                    name="first_name"
                     type="text"
                     required
+                    value={formData.first_name}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
@@ -111,17 +197,19 @@ const RegisterPage = () => {
 
               <div>
                 <label
-                  htmlFor="lastname"
+                  htmlFor="last_name"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Lastname
+                  Last Name
                 </label>
                 <div className="mt-2">
                   <input
-                    id="lastname"
-                    name="lastname"
+                    id="last_name"
+                    name="last_name"
                     type="text"
                     required
+                    value={formData.last_name}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
@@ -141,6 +229,8 @@ const RegisterPage = () => {
                     type="email"
                     autoComplete="email"
                     required
+                    value={formData.email}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
@@ -158,8 +248,10 @@ const RegisterPage = () => {
                     id="password"
                     name="password"
                     type="password"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     required
+                    value={formData.password}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>
@@ -174,11 +266,13 @@ const RegisterPage = () => {
                 </label>
                 <div className="mt-2">
                   <input
-                    id="confirmpassword"
-                    name="confirmpassword"
+                    id="confirm_password"
+                    name="confirm_password"
                     type="password"
-                    autoComplete="current-password"
+                    autoComplete="new-password"
                     required
+                    value={formData.confirm_password}
+                    onChange={handleChange}
                     className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                   />
                 </div>

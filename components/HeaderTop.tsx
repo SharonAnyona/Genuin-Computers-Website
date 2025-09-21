@@ -16,14 +16,21 @@ import toast from "react-hot-toast";
 import { FaHeadphones } from "react-icons/fa6";
 import { FaRegEnvelope } from "react-icons/fa6";
 import { FaLocationDot } from "react-icons/fa6";
-import { FaRegUser } from "react-icons/fa6";
+import { FaRegUser, FaBoxOpen } from "react-icons/fa6";
+import { useUserStore } from "../app/_zustand/userStore";
 
 const HeaderTop = () => {
   const { data: session }: any = useSession();
+  const user = useUserStore((state) => state.user);
+  const logout = useUserStore((state) => state.logout);
 
   const handleLogout = () => {
     setTimeout(() => signOut(), 1000);
     toast.success("Logout successful!");
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
+    logout();
+    window.location.reload();
   };
   return (
     <div className=" sticky top-0 z-5 h-10 text-black  bg-gray-200 shadow-lg  max-lg:px-5 max-lg:h-16 max-[573px]:px-0">
@@ -39,7 +46,7 @@ const HeaderTop = () => {
           </li>
         </ul>
         <ul className="flex items-center gap-x-5 h-full max-[370px]:text-sm max-[370px]:gap-x-2 font-semibold">
-          {!session ? (
+          {!(session || user) ? (
             <>
               <li className="flex items-center">
                 <Link
@@ -62,7 +69,28 @@ const HeaderTop = () => {
             </>
           ) : (
             <>
-              <span className="ml-10 text-base">{session.user?.email}</span>
+              <span className="text-base">
+                {session?.user?.first_name && session?.user?.last_name
+                  ? `${session.user.first_name} ${session.user.last_name}`
+                  : session?.user?.username
+                  ? session.user.username
+                  : session?.user?.email
+                  ? session.user.email
+                  : user?.first_name && user?.last_name
+                  ? `${user.first_name} ${user.last_name}`
+                  : user?.username
+                  ? user.username
+                  : user?.email}
+              </span>
+              <li className="flex items-center">
+                <Link
+                  href="/orders"
+                  className="flex items-center gap-x-2 font-semibold"
+                >
+                  <FaBoxOpen className="text-black" />
+                  <span>Orders</span>
+                </Link>
+              </li>
               <li className="flex items-center">
                 <button
                   onClick={() => handleLogout()}

@@ -61,7 +61,7 @@ const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await fetch(`${BACKEND_URL}/api/products`);
+        const data = await fetch(`${BACKEND_URL}/store/api/products`);
         const productsData = await data.json();
         // Filter products by categorySlug (category or subcategory)
         const filtered = productsData.filter((product: any) => {

@@ -19,7 +19,7 @@ export default function Home() {
       <div className=" max-w-screen-2xl mx-auto px-8 sm:px-10 lg:px-12">
         <Incentives />
         <CategorySectionsPage />
-        <NewArrivalsSection />
+        {/* <NewArrivalsSection /> */}
         <ShopByBrandSection />
         {/* <ProductsSection /> */}
         <RecommendedSection />
