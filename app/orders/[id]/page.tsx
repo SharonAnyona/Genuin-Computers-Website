@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { BACKEND_URL } from "@/config";
 import Link from "next/link";
@@ -38,7 +38,7 @@ interface Order {
 }
 
 export default function OrderDetailPage() {
-  const { data: session, status } = useSession();
+  // const { data: session, status } = useSession();
   const router = useRouter();
   const params = useParams();
   const [order, setOrder] = useState<Order | null>(null);
@@ -48,21 +48,20 @@ export default function OrderDetailPage() {
   const [mpesaPhone, setMpesaPhone] = useState("");
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
       router.push(`/login?callbackUrl=/orders/${params.id}`);
       return;
     }
-
-    if (status === "authenticated") {
-      fetchOrder();
-    }
-  }, [status, router, params.id]);
+    fetchOrder();
+  }, [router, params.id]);
 
   const fetchOrder = async () => {
     try {
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`${BACKEND_URL}/store/api/orders/${params.id}/`, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -88,11 +87,12 @@ export default function OrderDetailPage() {
 
     setIsPaying(true);
     try {
+      const token = localStorage.getItem("authToken");
       const response = await fetch(`${BACKEND_URL}/mpesa/initiate/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           order_id: order?.id,
@@ -121,9 +121,10 @@ export default function OrderDetailPage() {
     
     const checkStatus = async () => {
       try {
+        const token = localStorage.getItem("authToken");
         const response = await fetch(`${BACKEND_URL}/mpesa/status/${order?.id}/`, {
           headers: {
-            Authorization: `Bearer ${session?.accessToken}`,
+            Authorization: `Bearer ${token}`,
           },
         });
         
