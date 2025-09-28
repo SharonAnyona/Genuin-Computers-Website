@@ -49,7 +49,7 @@ const ProductCategorySection: React.FC<ProductCategorySectionProps> = ({
   const handleAddToCart = (product: Product) => {
     addToCart({
       id: product.id,
-      title: product.title,
+      name: product.title,
       price: product.price,
       image: product.mainImage,
       amount: 1,

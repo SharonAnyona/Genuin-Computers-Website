@@ -223,7 +223,7 @@ const ResetPasswordPage = () => {
             {otpVerified 
               ? "Enter your new password below"
               : `We've sent a verification code to ${formData.email}`}
-            }
+            
           </p>
         </div>
 

@@ -24,7 +24,7 @@ const BuyNowSingleProductBtn = ({
   const handleAddToCart = () => {
     addToCart({
       id: product?.id.toString(),
-      title: product?.title,
+      name: product?.title,
       price: product?.price,
       image: product?.mainImage,
       amount: quantityCount,

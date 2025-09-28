@@ -8,35 +8,64 @@
 // Output: custom button component
 // *********************
 
+
 import React from "react";
 
 interface CustomButtonProps {
-  paddingX: number;
-  paddingY: number;
-  text: string;
-  buttonType: "submit" | "reset" | "button";
-  customWidth: string;
-  textSize: string;
+  // Old props
+  paddingX?: number;
+  paddingY?: number;
+  text?: string;
+  buttonType?: "submit" | "reset" | "button";
+  customWidth?: string;
+  textSize?: string;
+
+  // New props
+  title?: string;
+  containerStyles?: string;
+  disabled?: boolean;
+  onClick?: () => void;
+  type?: "button" | "submit" | "reset";
 }
 
-const CustomButton = ({
+const CustomButton: React.FC<CustomButtonProps> = ({
+  // old props
   paddingX,
   paddingY,
   text,
-  buttonType,
+  buttonType = "button",
   customWidth,
-  textSize
-}: CustomButtonProps) => {
+  textSize,
 
+  // new props
+  title,
+  containerStyles,
+  disabled = false,
+  onClick,
+  type,
+}) => {
+  // Decide what label to show
+  const label = title || text || "Button";
 
   return (
     <button
-      type={`${buttonType}`}
-      className={`${customWidth !== "no" && `w-${customWidth}`} uppercase bg-white px-${paddingX} py-${paddingY} text-${textSize} border border-gray-300 font-bold text-red-600 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2`}
+      type={type || buttonType}
+      disabled={disabled}
+      onClick={onClick}
+      className={`
+        ${customWidth && customWidth !== "no" ? `w-${customWidth}` : ""}
+        ${paddingX ? `px-${paddingX}` : ""}
+        ${paddingY ? `py-${paddingY}` : ""}
+        ${textSize ? `text-${textSize}` : ""}
+        uppercase bg-white border border-gray-300 font-bold text-red-600 shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2
+        ${containerStyles || ""}
+        ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+      `}
     >
-      {text}
+      {label}
     </button>
   );
 };
 
 export default CustomButton;
+

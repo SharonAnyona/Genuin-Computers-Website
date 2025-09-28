@@ -1,30 +1,21 @@
 "use client";
-// *********************
-// Role of the component: Category wrapper that will contain title and category items
-// Name of the component: CategoryMenu.tsx
-// Developer:Sharon Anyona
-// Version: 1.0
-// Component call: <CategoryMenu />
-// Input parameters: no input parameters
-// Output: section title and category items
-// *********************
-
 import React, { useEffect, useState } from "react";
 import CategoryItem from "./CategoryItem";
 import Image from "next/image";
-import { fetchCategories } from "@/utils/fetchCategories";
+import { fetchCategories, Category } from "@/utils/fetchCategories";
 import Heading from "./Heading";
 
 const CategoryMenu = () => {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let ignore = false;
     setLoading(true);
+
     fetchCategories()
       .then((data) => {
-        if (!ignore) setCategories(data);
+        if (!ignore) setCategories(data.results); // ✅ use results array
       })
       .catch(() => {
         if (!ignore) setCategories([]);
@@ -32,10 +23,12 @@ const CategoryMenu = () => {
       .finally(() => {
         if (!ignore) setLoading(false);
       });
+
     return () => {
       ignore = true;
     };
   }, []);
+
 
   return (
     <div className="py-10 bg-[#f5f5f5]">
@@ -46,31 +39,34 @@ const CategoryMenu = () => {
         ) : (
           <div className="animate-marquee whitespace-nowrap flex items-center gap-8 px-6">
             {categories.map((item) => (
-              <CategoryItem title={item.title} key={item.id} href={item.href}>
+              <CategoryItem
+                title={item.name} // ✅ name → title
+                key={item.id}
+                href={`/categories/${item.slug}`} // ✅ slug → href
+              >
                 <div className="flex flex-col items-center justify-center w-32 h-32 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
                   <Image
-                    src={item.src || "/category-placeholder.png"}
+                    src={"/category-placeholder.png"} // backend didn’t provide an image
                     width={48}
                     height={48}
-                    alt={item.title}
+                    alt={item.name}
                     className="mb-2 group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>
               </CategoryItem>
             ))}
-            {/* Clone list again to create seamless marquee effect */}
             {categories.map((item) => (
               <CategoryItem
-                title={item.title}
+                title={item.name}
                 key={`clone-${item.id}`}
-                href={item.href}
+                href={`/categories/${item.slug}`}
               >
                 <div className="flex flex-col items-center justify-center w-32 h-32 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 group hover:-translate-y-1">
                   <Image
-                    src={item.src || "/category-placeholder.png"}
+                    src={"/category-placeholder.png"}
                     width={48}
                     height={48}
-                    alt={item.title}
+                    alt={item.name}
                     className="mb-2 group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>

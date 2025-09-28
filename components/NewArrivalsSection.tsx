@@ -33,8 +33,8 @@ const NewArrivalsSection: React.FC = () => {
 
   const handleAddToCart = (product: Product) => {
     addToCart({
-      id: product.id,
-      title: product.name, // use backend `name`
+      id: product.id.toString(),
+      name: product.name, // use backend `name`
       price: parseFloat(product.price),
       image: product.images?.[0]?.src || "/product_placeholder.jpg",
       amount: 1,
