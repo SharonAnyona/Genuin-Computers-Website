@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Shield, Users, Package, ShoppingCart, Settings, LogOut, Eye, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const SuperAdminDashboard = () => {
-  const { data: session, status } = useSession();
+  // const { data: session, status } = useSession();
   const router = useRouter();
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [stats, setStats] = useState({
@@ -20,26 +20,21 @@ const SuperAdminDashboard = () => {
 
   useEffect(() => {
     const checkAuthorization = async () => {
-      if (status === "loading") return;
-      
-      if (!session?.user?.email) {
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (!user || !user.email) {
         router.push("/super-admin/login");
         return;
       }
-
-      // Check user role from session (role is now included in JWT)
-      if (session?.user?.role !== "super_admin") {
+      if (user.role?.name !== "super_admin") {
         toast.error("Access denied. Super Admin privileges required.");
         router.push("/super-admin/login");
         return;
       }
-      
       setIsAuthorized(true);
       loadDashboardData();
     };
-
     checkAuthorization();
-  }, [session, status, router]);
+  }, [router]);
 
   const loadDashboardData = async () => {
     try {
