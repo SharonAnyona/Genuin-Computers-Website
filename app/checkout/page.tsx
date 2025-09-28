@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { BACKEND_URL } from "@/config";
 import { useProductStore } from "../_zustand/store";
-import { useSession } from "next-auth/react";
 
 interface CheckoutForm {
   name: string;
@@ -30,7 +29,6 @@ const CITIES = [
 export default function Checkout() {
   const { products, clearCart, total, calculateTotals } = useProductStore();
   const router = useRouter();
-  const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderId, setOrderId] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'mpesa' | 'cod'>('mpesa');
@@ -38,9 +36,9 @@ export default function Checkout() {
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'pending' | 'completed' | 'failed'>('idle');
 
   const [checkoutForm, setCheckoutForm] = useState<CheckoutForm>({
-    name: session?.user?.name || "",
+    name: "",
     phone_number: "",
-    email: session?.user?.email || "",
+    email: "",
     address: "",
     city: "Nairobi", // Default to Nairobi
     order_notes: "",

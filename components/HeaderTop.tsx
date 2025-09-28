@@ -9,7 +9,6 @@
 // *********************
 
 "use client";
-import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import React from "react";
 import toast from "react-hot-toast";
@@ -20,12 +19,10 @@ import { FaRegUser, FaBoxOpen } from "react-icons/fa6";
 import { useUserStore } from "../app/_zustand/userStore";
 
 const HeaderTop = () => {
-  const { data: session }: any = useSession();
   const user = useUserStore((state) => state.user);
   const logout = useUserStore((state) => state.logout);
 
   const handleLogout = () => {
-    setTimeout(() => signOut(), 1000);
     toast.success("Logout successful!");
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
@@ -46,7 +43,7 @@ const HeaderTop = () => {
           </li>
         </ul>
         <ul className="flex items-center gap-x-5 h-full max-[370px]:text-sm max-[370px]:gap-x-2 font-semibold">
-          {!(session || user) ? (
+          {!user ? (
             <>
               <li className="flex items-center">
                 <Link
@@ -70,13 +67,7 @@ const HeaderTop = () => {
           ) : (
             <>
               <span className="text-base">
-                {session?.user?.first_name && session?.user?.last_name
-                  ? `${session.user.first_name} ${session.user.last_name}`
-                  : session?.user?.username
-                  ? session.user.username
-                  : session?.user?.email
-                  ? session.user.email
-                  : user?.first_name && user?.last_name
+                {user?.first_name && user?.last_name
                   ? `${user.first_name} ${user.last_name}`
                   : user?.username
                   ? user.username

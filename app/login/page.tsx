@@ -75,18 +75,10 @@ const LoginPage = () => {
       toast.error("Please enter a valid email address");
       return;
     }
-
-    if (!formData.password || formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      toast.error("Password must be at least 8 characters long");
-      return;
-    }
-
     setIsLoading(true);
-
     try {
-      // First, try to log in
-      const response = await fetch(`${BACKEND_URL}/auth/api/auth/login/`, {
+  // Authenticate with Django backend
+  const response = await fetch(`${BACKEND_URL}/auth/api/auth/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,32 +90,21 @@ const LoginPage = () => {
       });
 
   const data: LoginResponse = await response.json();
-  console.log('Backend login response:', data);
+  console.log('Login response data:', data);
 
-      if (!response.ok) {
+
+      if (!response.ok || !data.entity || !data.entity.token) {
         throw new Error(data.error || "Login failed. Please try again.");
       }
 
-      // Check if user is verified
-      if (!data.entity?.is_verified) {
-        // Redirect to OTP verification page
-        toast.error("Please verify your email before logging in");
-        router.push(`/verify-otp?email=${encodeURIComponent(formData.email)}`);
-        return;
-      }
-
-      // Save the token and user info from login response
-      if (data.token) {
-        localStorage.setItem("authToken", data.token);
-        if (data.entity) {
-          localStorage.setItem("user", JSON.stringify(data.entity));
-          setUser(data.entity);
-        }
-      }
+      // Save the token and user info from Django response
+      localStorage.setItem("authToken", data.entity.token);
+      localStorage.setItem("user", JSON.stringify(data.entity));
+      setUser(data.entity);
 
       toast.success("Login successful!");
       router.push(redirectUrl);
-      
+
     } catch (error: any) {
       console.error("Login error:", error);
       const errorMessage = error.message || "Invalid email or password. Please try again.";

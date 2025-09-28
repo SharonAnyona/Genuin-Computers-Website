@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { BACKEND_URL } from "@/config";
 import Link from "next/link";
@@ -28,37 +27,45 @@ interface Order {
 }
 
 export default function OrdersPage() {
-  const { data: session, status } = useSession();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
       router.push("/login?callbackUrl=/orders");
       return;
     }
-
-    if (status === "authenticated") {
-      fetchOrders();
-    }
-  }, [status, router]);
+    fetchOrders();
+  }, [router]);
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/store/api/orders/my-orders/`, {
+  const response = await fetch(`${BACKEND_URL}/store/api/orders/`, {
         headers: {
-          Authorization: `Bearer ${session?.accessToken}`,
+          Authorization: `Bearer ${localStorage.getItem("authToken")}`,
         },
       });
-
+      console.log('Orders fetch response:', response);
       if (!response.ok) {
+        const text = await response.text();
+        console.error('Orders fetch failed:', response.status, text);
         throw new Error("Failed to fetch orders");
       }
-
       const data = await response.json();
-      setOrders(data);
+      console.log('Orders response JSON:', data);
+      // If data is an array, use it directly; if it's an object, try data.orders or data.results
+      if (Array.isArray(data)) {
+        setOrders(data);
+      } else if (Array.isArray(data.orders)) {
+        setOrders(data.orders);
+      } else if (Array.isArray(data.results)) {
+        setOrders(data.results);
+      } else {
+        setOrders([]);
+      }
     } catch (error) {
       console.error("Error fetching orders:", error);
       setError("Failed to load orders. Please try again later.");

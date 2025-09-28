@@ -1,30 +1,18 @@
-import { useSession } from "next-auth/react";
-import { getServerSession } from "next-auth/next";
+
 import { redirect } from "next/navigation";
 import toast from "react-hot-toast";
-import { BACKEND_URL } from "@/config";
+import { useUserStore } from "../_zustand/userStore";
 
-export default async function Layout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  const session: {
-    user: { name: string; email: string; image: string };
-  } | null = await getServerSession();
 
-  if (!session) {
-    redirect("/");
+export default function Layout({ children }: { children: React.ReactNode }) {
+  // Client-side check for user role
+  if (typeof window !== "undefined") {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    if (!user || user.role === "user") {
+      redirect("/");
+      toast.error("Access denied. Admins only.");
+      return null;
+    }
   }
-
-  let email: string = await session?.user?.email;
-  
-  const res = await fetch(`${BACKEND_URL}/api/users/email/${email}`);
-  const data = await res.json();
-  // redirecting user to the home page if not admin
-  if (data.role === "user") {
-    redirect("/");
-  }
-
   return <>{children}</>;
 }
